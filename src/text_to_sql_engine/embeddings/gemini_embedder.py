@@ -20,7 +20,7 @@ class GeminiEmbedder:
     """
 
     def __init__(
-        self, api_key: str, model: str = "gemini-embedding-001", client: Any = None
+        self, api_key: str, model: str = "gemini-embedding-2", client: Any = None
     ) -> None:
         self._client: Any = client or build_client(api_key)
         self._model = model

@@ -196,7 +196,7 @@ Copy `.env.example` to `.env` and adjust. Every variable is optional — with no
 | `LLM_PROVIDER` | `auto` | `auto` (Gemini if its key is set, else OpenAI, else fake), `gemini`, or `openai` |
 | `GEMINI_API_KEY` | *(unset)* | Enables the Gemini provider and embedder (free tier available) |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Chat model for generation, correction, summaries |
-| `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-001` | Embeddings for schema-card and few-shot retrieval |
+| `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-2` | Embeddings for schema-card and few-shot retrieval |
 | `GROQ_API_KEY` | *(unset)* | Enables the Groq provider (`LLM_PROVIDER=groq`); retrieval uses the local lexical embedder because Groq has no embeddings API |
 | `GROQ_MODEL` | `llama-3.3-70b-versatile` | Chat model for generation, correction, summaries |
 | `LLM_FALLBACK` | `auto` | With Gemini selected and `GROQ_API_KEY` set, a Gemini failure (e.g. free-tier quota) automatically fails over to Groq (and lexical retrieval); `none` disables. Evaluation reports how many calls used the fallback, since those results are mixed-provider |
