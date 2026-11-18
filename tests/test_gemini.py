@@ -68,7 +68,8 @@ def test_embedder_rejects_mismatched_response_size() -> None:
     models = _StubModels()
     models.embed_content = lambda **_: SimpleNamespace(embeddings=[])  # type: ignore[method-assign]
     with pytest.raises(RuntimeError, match="0 embeddings for 2 texts"):
-        GeminiEmbedder("unused", model="gemini-embedding-001", client=_client(models)).embed(["a", "b"])
+        embedder = GeminiEmbedder("unused", model="gemini-embedding-001", client=_client(models))
+        embedder.embed(["a", "b"])
 
 
 def test_embedder_empty_input_makes_no_call() -> None:
