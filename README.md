@@ -156,21 +156,23 @@ make eval           # real model: needs GEMINI_API_KEY (or OPENAI_API_KEY) and D
 
 `make eval` refuses to run on the FakeLLM. Metrics: first-attempt valid SQL rate (passes guardrails and EXPLAIN), execution success rate, execution accuracy against the gold SQL's rows, correction success rate (of questions whose first attempt failed), unsafe rejection rate, and a before/after row-count check that no table changed. Per-question results are written to `artifacts/`.
 
-What has been measured so far:
+What has been measured (full evidence and per-bullet mapping: [`docs/RESUME_EVIDENCE.md`](docs/RESUME_EVIDENCE.md)):
 
-- `make eval-oracle` on PostgreSQL: 54/54 gold queries pass validation and execute and match themselves, 6/6 unsafe statements are rejected, and no table row count changed. This validates the dataset and the guardrails. It says nothing about model quality, because the "model" is the answer key.
-- Live-model ablation (Gemini `gemini-3.5-flash-lite`, 54 answerable questions, committed in `evaluation/results/gemini/`). Run `make ablation` to reproduce; `python -m evaluation.compare` prints the table. A *hallucination* is a first-attempt query that references a table or column absent from the schema (static sqlglot check, `evaluation/hallucination.py`).
+- `make eval-oracle`: 54/54 gold queries pass validation, execute and match; 6/6 unsafe requests rejected; no table changed. This checks the dataset and guardrails, not model quality.
+- **v2 ablation** (current code), Groq `openai/gpt-oss-20b` (reasoning effort low, temperature 0, lexical retrieval), 54 answerable questions, all four arms on 2026-11-18, files in `evaluation/results/v2-groq-gpt-oss-20b/`. Each arm runs with up to 2 corrections; the first attempt of that run is the corrections-off result for the same question.
 
-| Arm | Prompt | Corrections | First-try hallucination | Execution success | Execution accuracy |
-|---|---|---|---|---|---|
-| `baseline_c0` | bare table names, no exemplars | 0 | 50/54 (92.6%) | 4/54 (7.4%) | 4/54 (7.4%) |
-| `baseline_c2` | bare table names, no exemplars | 2 | 46/54 (85.2%) | 25/54 (46.3%) | 20/54 (37.0%) |
-| `aware_c0`, `aware_c2` | schema cards + sample rows + exemplars | 0 / 2 | **not yet run** | | |
+| Prompt | First-try hallucination | Query success OFF → ON | Accuracy OFF → ON | Failed first attempts fixed |
+|---|---|---|---|---|
+| table names only (`baseline`) | 17/54 (31.5%) | 18/54 (33.3%) → 39/54 (72.2%) | 17/54 → 28/54 | 21/22 |
+| table + column names (`columns_only`) | 0/54 | 53/54 (98.1%) → 54/54 | 37/54 (68.5%) → 37/54 | 1/1 |
+| schema-aware, no sample rows | 0/54 | 53/54 → 54/54 | 45/54 (83.3%) → 45/54 | 1/1 |
+| schema-aware + sample rows (default) | 0/54 | 53/54 (98.1%) → 54/54 (100%) | 45/54 (83.3%) → 45/54 | 1/1 |
 
-  The two schema-aware arms were interrupted by the Gemini free-tier daily quota (500 generate requests/day) and have not been re-run; rerun `make ablation` after the quota resets. Until then, no schema-aware vs baseline figure on the current prompt is claimed. Runs vary slightly even at temperature 0 (first-try hallucinations were 50 vs 46 across the two baseline runs).
-- Self-correction effect (baseline prompt, same questions, same model): execution success 4/54 -> 25/54 with up to 2 correction rounds; 17 of 46 failing questions were fixed. This is measured on the deliberately weak baseline prompt, where first attempts fail often. With the schema-aware prompt, first attempts almost always succeed, so the lift there is expected to be small.
+  In every arm 6/6 unsafe requests were refused and no data changed. With any column information the model also declined 3/4 nonexistent-column and 3/3 ambiguous questions instead of inventing SQL; the names-only prompt falsely declined 15/54 answerable questions.
+- **v1 ablation** (code before the catalog-grounded correction prompt), Groq `qwen/qwen3.8-27b`, `evaluation/results/v1-groq-qwen3.8-27b/`: first-try hallucination 34/54 (names only) → 0/54 (schema-aware); correction lifted names-only query success 14/54 → 23/54 (9 of 40 failures fixed).
+- Earlier Gemini `gemini-3.5-flash-lite` baseline runs (names-only prompt only; the schema-aware arms were stopped by the free-tier quota) are kept in `evaluation/results/gemini/` and are not compared with the Groq files.
 
-Unsafe-request handling has three layers: a pre-LLM intent gate (`guardrails/intent.py`) rejects requests to modify data without calling the model; guardrails reject constant queries that read no table (a model's disguised refusal) and queries listing every column of a sensitive table; and the read-only transaction is the final backstop. In the earlier live Gemini run these requests were answered with harmless `SELECT`s and scored 0/6; re-measure with `make eval` after this change (the oracle run, which bypasses the model, scores 6/6).
+What these show: schema-aware prompting removes hallucinated tables/columns (100% relative reduction vs names-only, on both models) and raises accuracy over a column-list prompt (68.5% → 83.3%); sample rows on top of metadata had no measurable effect on this small schema. Feeding the error plus the real catalog columns back to the model fixes 95% of failed first attempts (v1 fixed 23%), but with schema-aware prompting first attempts already succeed 98% of the time, so the end-to-end lift is largest when the prompt context is weak.
 
 ### Architecture in one paragraph
 
@@ -178,7 +180,7 @@ A question is embedded and used to rank per-table schema cards (introspected fro
 
 ### Limitations and future work
 
-- Live LLM accuracy is unmeasured; the evaluation set is small and uses one tiny schema (12 customers, 30 orders).
+- The evaluation set is small (54 answerable questions) and uses one tiny schema (12 customers, 30 orders); accuracy misses are mostly definition disagreements with the gold SQL (extra columns, status filters on revenue).
 - Schema retrieval ranks all 5 tables but the whole schema fits in the token budget, so retrieval does not filter anything on this database. It matters for wide schemas.
 - The few-shot exemplars are written for the demo schema and need to be replaced for another database.
 - The result summary is a one-sentence LLM paraphrase of metadata and the first row, not an analysis.
@@ -193,12 +195,13 @@ Copy `.env.example` to `.env` and adjust. Every variable is optional — with no
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATABASE_URL` | *(unset → fixtures)* | PostgreSQL DSN for introspection and execution |
-| `LLM_PROVIDER` | `auto` | `auto` (Gemini if its key is set, else OpenAI, else fake), `gemini`, or `openai` |
+| `LLM_PROVIDER` | `auto` | `auto` (Gemini, then Groq, then OpenAI, by which key is set; else fake), `gemini`, `groq`, or `openai` |
 | `GEMINI_API_KEY` | *(unset)* | Enables the Gemini provider and embedder (free tier available) |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Chat model for generation, correction, summaries |
 | `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-001` | Embeddings for schema-card and few-shot retrieval |
 | `GROQ_API_KEY` | *(unset)* | Enables the Groq provider (`LLM_PROVIDER=groq`); retrieval uses the local lexical embedder because Groq has no embeddings API |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Chat model for generation, correction, summaries |
+| `GROQ_MODEL` | `qwen/qwen3.8-27b` | Chat model for generation, correction, summaries |
+| `GROQ_REASONING_EFFORT` | *(unset)* | `low`/`medium`/`high` for reasoning models such as `openai/gpt-oss-20b` |
 | `LLM_FALLBACK` | `auto` | With Gemini selected and `GROQ_API_KEY` set, a Gemini failure (e.g. free-tier quota) automatically fails over to Groq (and lexical retrieval); `none` disables. Evaluation reports how many calls used the fallback, since those results are mixed-provider |
 | `OPENAI_API_KEY` | *(unset)* | Enables the OpenAI provider and embedder |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Chat model for generation, correction, summaries |
@@ -208,7 +211,7 @@ Copy `.env.example` to `.env` and adjust. Every variable is optional — with no
 | `STATEMENT_TIMEOUT_MS` | `5000` | Server-enforced per-statement timeout |
 | `SCHEMA_TOKEN_BUDGET` | `2000` | Approximate token cap for schema cards in the prompt |
 | `SAMPLE_ROWS_PER_TABLE` | `3` | Real rows per non-sensitive table shown in schema cards (`0` disables; sensitive tables are never sampled) |
-| `PROMPT_MODE` | `schema_aware` | `baseline` = bare table names, no exemplars (ablation only) |
+| `PROMPT_MODE` | `schema_aware` | `baseline` = bare table names; `columns_only` = table + column names; both without exemplars (ablation only) |
 | `SENSITIVE_TABLES` | `customers` | Comma-separated tables where `SELECT *` is denied |
 | `HISTORY_DB_PATH` | `artifacts/history.sqlite` | SQLite file for query history |
 
