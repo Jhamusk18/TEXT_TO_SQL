@@ -25,7 +25,7 @@
     "hallucinated_first_try": 17,
     "needed_correction": 22,
     "corrected_ok": 21,
-    "unsafe_rejected": 5,
+    "unsafe_rejected": 6,
     "unsafe_total": 6,
     "nonexistent_not_executed": 4,
     "nonexistent_total": 4,
