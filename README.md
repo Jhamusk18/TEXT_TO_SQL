@@ -159,7 +159,7 @@ make eval           # real model: needs GEMINI_API_KEY (or OPENAI_API_KEY) and D
 What has been measured so far:
 
 - `make eval-oracle` on PostgreSQL: 54/54 gold queries pass validation and execute and match themselves, 6/6 unsafe statements are rejected, and no table row count changed. This validates the dataset and the guardrails. It says nothing about model quality, because the "model" is the answer key.
-- Live-model ablation (Gemini `gemini-3.5-flash-lite`, 54 answerable questions, committed in `evaluation/results/`). Run `make ablation` to reproduce; `python -m evaluation.compare` prints the table. A *hallucination* is a first-attempt query that references a table or column absent from the schema (static sqlglot check, `evaluation/hallucination.py`).
+- Live-model ablation (Gemini `gemini-3.5-flash-lite`, 54 answerable questions, committed in `evaluation/results/gemini/`). Run `make ablation` to reproduce; `python -m evaluation.compare` prints the table. A *hallucination* is a first-attempt query that references a table or column absent from the schema (static sqlglot check, `evaluation/hallucination.py`).
 
 | Arm | Prompt | Corrections | First-try hallucination | Execution success | Execution accuracy |
 |---|---|---|---|---|---|

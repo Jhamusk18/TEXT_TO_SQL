@@ -16,7 +16,11 @@ from text_to_sql_engine.llm.base import LLMProvider
 from text_to_sql_engine.models import Exemplar, QueryResult, QueryStatus
 from text_to_sql_engine.prompts import PromptBuilder
 from text_to_sql_engine.schema.cache import SchemaCache
-from text_to_sql_engine.schema.cards import build_name_only_card, select_cards
+from text_to_sql_engine.schema.cards import (
+    build_columns_only_card,
+    build_name_only_card,
+    select_cards,
+)
 
 
 class TextToSqlPipeline:
@@ -83,6 +87,10 @@ class TextToSqlPipeline:
             # Ablation baseline: bare table names, no retrieval, no exemplars.
             cards = [build_name_only_card(table) for table in schema.tables]
             exemplars: list[Exemplar] = []
+        elif self._prompt_mode == "columns_only":
+            # Ablation middle arm: every table with its column names, nothing else.
+            cards = [build_columns_only_card(table) for table in schema.tables]
+            exemplars = []
         else:
             cards = select_cards(question, schema, self._embedder, self._token_budget)
             exemplars = self._fewshot.top_k(question, k=3)

@@ -65,6 +65,17 @@ def build_name_only_card(table: TableInfo) -> SchemaCard:
     return SchemaCard(table=table.name, text=text, tokens=estimate_tokens(text))
 
 
+def build_columns_only_card(table: TableInfo) -> SchemaCard:
+    """Middle ablation arm: table and column names only.
+
+    No types, keys, comments, sample rows, or [sensitive] flag. This is what a
+    naive "paste the column list into the prompt" approach looks like, so it
+    isolates what the richer metadata + sample rows + exemplars add on top.
+    """
+    text = f"table {table.name}({', '.join(column.name for column in table.columns)})"
+    return SchemaCard(table=table.name, text=text, tokens=estimate_tokens(text))
+
+
 def select_cards(
     question: str,
     schema: DatabaseSchema,

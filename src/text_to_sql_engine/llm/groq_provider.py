@@ -20,7 +20,7 @@ class GroqProvider(OpenAIProvider):
     def __init__(
         self,
         api_key: str,
-        model: str = "llama-3.3-70b-versatile",
+        model: str = "qwen/qwen3.8-27b",
         temperature: float = 0.0,
         client: Any = None,
     ) -> None:

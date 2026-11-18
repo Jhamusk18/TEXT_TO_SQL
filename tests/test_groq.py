@@ -25,7 +25,7 @@ def test_groq_provider_sends_system_prompt_and_zero_temperature() -> None:
     client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
     provider = GroqProvider("k", client=client)
     assert provider.complete("hi", system="sys") == "SELECT 1"
-    assert completions.kwargs["model"] == "llama-3.3-70b-versatile"
+    assert completions.kwargs["model"] == "qwen/qwen3.8-27b"
     assert completions.kwargs["temperature"] == 0.0
     assert completions.kwargs["messages"] == [
         {"role": "system", "content": "sys"},
@@ -45,4 +45,4 @@ def test_container_reports_groq_mode(tmp_path: Path) -> None:
     )
     components = build_components(settings)
     assert components.llm_mode == "groq"
-    assert components.llm_model == "llama-3.3-70b-versatile"
+    assert components.llm_model == "qwen/qwen3.8-27b"

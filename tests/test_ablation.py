@@ -11,7 +11,11 @@ from text_to_sql_engine.config import Settings
 from text_to_sql_engine.container import build_components
 from text_to_sql_engine.llm.fake import FakeLLM
 from text_to_sql_engine.models import CorrectionRound, QueryResult, QueryStatus, TableInfo
-from text_to_sql_engine.schema.cards import build_card, build_name_only_card
+from text_to_sql_engine.schema.cards import (
+    build_card,
+    build_columns_only_card,
+    build_name_only_card,
+)
 from text_to_sql_engine.schema.fixtures import DEMO_SCHEMA
 
 
@@ -31,6 +35,30 @@ def test_card_without_sample_rows_has_no_sample_lines() -> None:
 def test_name_only_card_hides_columns() -> None:
     card = build_name_only_card(DEMO_SCHEMA.tables[1])
     assert card.text == "table products"
+
+
+def test_columns_only_card_lists_names_without_types_or_samples() -> None:
+    table = TableInfo(
+        name="products",
+        columns=DEMO_SCHEMA.tables[1].columns,
+        sample_rows=[{"id": "1", "name": "Mug"}],
+    )
+    text = build_columns_only_card(table).text
+    assert text.startswith("table products(") and "price_cents" in text
+    assert "sample:" not in text and "integer" not in text.lower() and "PK" not in text
+
+
+def test_columns_only_prompt_has_all_tables_and_no_exemplars(tmp_path: Path) -> None:
+    llm = FakeLLM(script=["SELECT products.name FROM products"])
+    settings = Settings(
+        database_url=None, prompt_mode="columns_only", summarize_results=False,
+        history_db_path=str(tmp_path / "h.sqlite"),
+    )
+    components = build_components(settings, llm=llm)
+    components.pipeline.answer("List product names")
+    prompt = llm.calls[0]
+    assert "price_cents" in prompt and "Q:" not in prompt
+    assert all(f"table {t.name}(" in prompt for t in DEMO_SCHEMA.tables)
 
 
 def test_detects_unknown_table() -> None:

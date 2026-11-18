@@ -20,7 +20,7 @@ class Settings(BaseSettings):
     gemini_embedding_model: str = "gemini-embedding-001"
     llm_fallback: Literal["auto", "none"] = "auto"
     groq_api_key: str | None = None
-    groq_model: str = "llama-3.3-70b-versatile"
+    groq_model: str = "qwen/qwen3.8-27b"
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     statement_timeout_ms: int = Field(default=5000, ge=100)
     schema_token_budget: int = Field(default=2000, ge=100)
     sample_rows_per_table: int = Field(default=3, ge=0, le=10)
-    prompt_mode: Literal["schema_aware", "baseline"] = "schema_aware"
+    prompt_mode: Literal["schema_aware", "columns_only", "baseline"] = "schema_aware"
     summarize_results: bool = True
     sensitive_tables: str = "customers"
     history_db_path: str = "artifacts/history.sqlite"

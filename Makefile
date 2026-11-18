@@ -1,7 +1,7 @@
 VENV := .venv
 PYTHON := $(VENV)/bin/python
 
-.PHONY: install lint type test check demo run ui eval eval-oracle ablation db-up db-local db-down
+.PHONY: install lint type test check demo run ui eval eval-oracle ablation ablation-extra db-up db-local db-down
 
 install:
 	uv venv --python 3.12 $(VENV)
@@ -36,14 +36,27 @@ eval-oracle:
 db-local:
 	./scripts/setup_local_postgres.sh
 
-RESULTS := evaluation/results
+# Every arm of one ablation must use the same provider and model; compare.py refuses otherwise.
+# Example: LLM_PROVIDER=groq GROQ_MODEL=qwen/qwen3.8-27b LLM_FALLBACK=none make ablation
+RESULTS ?= evaluation/results/groq
+EVAL := $(PYTHON) -m evaluation.run
 
 ablation:
-	$(PYTHON) -m evaluation.run --prompt-mode baseline --max-corrections 0 --out $(RESULTS)/baseline_c0.json
-	$(PYTHON) -m evaluation.run --prompt-mode baseline --max-corrections 2 --out $(RESULTS)/baseline_c2.json
-	$(PYTHON) -m evaluation.run --prompt-mode schema_aware --max-corrections 0 --out $(RESULTS)/aware_c0.json
-	$(PYTHON) -m evaluation.run --prompt-mode schema_aware --max-corrections 2 --out $(RESULTS)/aware_c2.json
-	$(PYTHON) -m evaluation.compare $(RESULTS)/baseline_c0.json $(RESULTS)/aware_c0.json $(RESULTS)/baseline_c2.json $(RESULTS)/aware_c2.json
+	mkdir -p $(RESULTS)
+	$(EVAL) --prompt-mode baseline --max-corrections 0 --out $(RESULTS)/baseline_c0.json
+	$(EVAL) --prompt-mode schema_aware --max-corrections 0 --out $(RESULTS)/aware_c0.json
+	$(EVAL) --prompt-mode schema_aware --max-corrections 2 --out $(RESULTS)/aware_c2.json
+	$(EVAL) --prompt-mode baseline --max-corrections 2 --out $(RESULTS)/baseline_c2.json
+	$(PYTHON) -m evaluation.compare $(RESULTS)/*.json
+
+# Two extra arms that isolate single factors (run after `make ablation`):
+#   columns_only_c0  table + column names only (fairer baseline than bare table names)
+#   aware_norows_c0  full schema-aware prompt with sample rows switched off
+ablation-extra:
+	$(EVAL) --prompt-mode columns_only --max-corrections 0 --out $(RESULTS)/columns_only_c0.json
+	$(EVAL) --prompt-mode schema_aware --max-corrections 0 --sample-rows 0 \
+		--out $(RESULTS)/aware_norows_c0.json
+	$(PYTHON) -m evaluation.compare $(RESULTS)/*.json
 
 db-up:
 	docker compose up -d postgres

@@ -5,7 +5,10 @@
     python -m evaluation.run --limit 10      # first N questions only
 
 Ablation flags (same dataset, same model, one variable changed per arm):
-    --prompt-mode {schema_aware,baseline}   baseline = bare table names, no exemplars
+    --prompt-mode {schema_aware,columns_only,baseline}
+                                            baseline = bare table names, no exemplars
+                                            columns_only = table + column names, nothing else
+    --sample-rows N                         sample rows per card (0 isolates their effect)
     --max-corrections N                     0 disables the self-correction loop
     --out PATH                              where to write the per-question JSON
 
@@ -148,7 +151,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--oracle", action="store_true", help="use reference SQL instead of an LLM")
     parser.add_argument("--limit", type=int, default=None)
-    parser.add_argument("--prompt-mode", choices=["schema_aware", "baseline"], default=None)
+    parser.add_argument(
+        "--prompt-mode", choices=["schema_aware", "columns_only", "baseline"], default=None
+    )
+    parser.add_argument("--sample-rows", type=int, default=None)
     parser.add_argument("--max-corrections", type=int, default=None)
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
@@ -175,6 +181,8 @@ def main(argv: list[str] | None = None) -> int:
         overrides["prompt_mode"] = args.prompt_mode
     if args.max_corrections is not None:
         overrides["max_correction_rounds"] = args.max_corrections
+    if args.sample_rows is not None:
+        overrides["sample_rows_per_table"] = args.sample_rows
     settings = settings.model_copy(update=overrides)
     llm = None
     if args.oracle:
