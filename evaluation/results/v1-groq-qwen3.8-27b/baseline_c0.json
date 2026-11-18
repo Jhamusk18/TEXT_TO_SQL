@@ -20,7 +20,8 @@
     "needed_correction": 40,
     "corrected_ok": 0,
     "unsafe_rejected": 6,
-    "unsafe_total": 6
+    "unsafe_total": 6,
+    "execution_accuracy_column_tolerant": 14
   },
   "rows": [
     {
@@ -41,7 +42,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: customer_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 2,
@@ -61,7 +63,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: product_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 3,
@@ -81,7 +84,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: order_date"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 4,
@@ -101,7 +105,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: customer_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 5,
@@ -121,7 +126,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: product_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 6,
@@ -137,7 +143,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS customer_count FROM customers AS customers LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 7,
@@ -153,7 +160,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS total_orders FROM orders AS orders LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 8,
@@ -169,7 +177,8 @@
       "first_attempt_sql": "SELECT o.status AS status, COUNT(*) AS order_count FROM orders AS o GROUP BY o.status LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 9,
@@ -189,7 +198,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: customer_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 10,
@@ -209,7 +219,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: total_amount"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 11,
@@ -229,7 +240,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: amount"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 12,
@@ -245,7 +257,8 @@
       "first_attempt_sql": "SELECT r.reason AS reason, COUNT(*) AS refund_count FROM refunds AS r GROUP BY r.reason LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 13,
@@ -265,7 +278,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: product_name"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 14,
@@ -285,7 +299,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: price"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 15,
@@ -301,7 +316,8 @@
       "first_attempt_sql": "SELECT p.category AS category, COUNT(*) AS product_count FROM products AS p GROUP BY p.category LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 16,
@@ -321,7 +337,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: product_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 17,
@@ -337,7 +354,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS completed_orders FROM orders AS orders WHERE orders.status = 'completed' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 18,
@@ -357,7 +375,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: total_amount"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 19,
@@ -377,7 +396,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: customer_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 20,
@@ -393,7 +413,8 @@
       "first_attempt_sql": "SELECT COUNT(DISTINCT r.order_id) AS refunded_orders FROM refunds AS r LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 21,
@@ -413,7 +434,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: price"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 22,
@@ -433,7 +455,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: order_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 23,
@@ -453,7 +476,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: total_amount"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 24,
@@ -471,7 +495,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Column 'order_date' could not be resolved. Line: 3, Col: 34"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 25,
@@ -489,7 +514,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Column 'order_date' could not be resolved. Line: 3, Col: 16"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 26,
@@ -509,7 +535,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: unit_price"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 27,
@@ -529,7 +556,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: customer_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 28,
@@ -549,7 +577,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: name"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 29,
@@ -569,7 +598,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: product_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 30,
@@ -589,7 +619,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: product_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 31,
@@ -609,7 +640,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: customer_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 32,
@@ -625,7 +657,8 @@
       "first_attempt_sql": "SELECT SUM(oi.quantity) AS total_units_sold FROM order_items AS oi LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 33,
@@ -645,7 +678,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: order_date"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 34,
@@ -665,7 +699,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: order_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 35,
@@ -685,7 +720,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: refund_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 36,
@@ -705,7 +741,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: customer_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 37,
@@ -723,7 +760,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Column 'order_date' could not be resolved. Line: 1, Col: 21"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 38,
@@ -741,7 +779,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Column 'signup_date' could not be resolved. Line: 3, Col: 17"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 39,
@@ -761,7 +800,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: unit_price"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 40,
@@ -781,7 +821,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: title"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 41,
@@ -801,7 +842,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: order_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 42,
@@ -819,7 +861,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Column 'refund_amount' could not be resolved. Line: 1, Col: 24"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 43,
@@ -839,7 +882,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: unit_price"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 44,
@@ -1087,7 +1131,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: price"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 58,
@@ -1103,7 +1148,8 @@
       "first_attempt_sql": "SELECT MAX(products.price_cents) AS highest_price_cents FROM products AS products LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 59,
@@ -1119,7 +1165,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS cancelled_orders FROM orders AS orders WHERE orders.status = 'cancelled' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 60,
@@ -1135,7 +1182,8 @@
       "first_attempt_sql": "SELECT AVG(order_items.unit_price_cents) AS average_unit_price_cents FROM order_items AS order_items LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 61,
@@ -1151,7 +1199,8 @@
       "first_attempt_sql": "SELECT COUNT(DISTINCT o.customer_id) AS distinct_customers FROM orders AS o LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 62,
@@ -1171,7 +1220,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: product_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 63,
@@ -1191,7 +1241,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: unit_price"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 64,
@@ -1211,7 +1262,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Unknown column: order_item_id"
-      ]
+      ],
+      "accurate_column_tolerant": false
     },
     {
       "id": 65,
@@ -1227,7 +1279,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS refund_count FROM refunds AS refunds WHERE NOT refunds.reason IS NULL LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 66,
@@ -1243,7 +1296,8 @@
       "first_attempt_sql": "SELECT SUM(oi.quantity * p.price_cents) AS total_revenue_cents FROM orders AS o JOIN order_items AS oi ON o.id = oi.order_id JOIN products AS p ON oi.product_id = p.id WHERE o.status = 'completed' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 67,
@@ -1261,7 +1315,8 @@
       "note": "",
       "corrections": [
         "guardrail: [qualify-columns] Column 'price' could not be resolved. Line: 3, Col: 11"
-      ]
+      ],
+      "accurate_column_tolerant": false
     }
   ]
 }

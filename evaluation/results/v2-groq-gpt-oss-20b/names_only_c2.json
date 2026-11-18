@@ -30,7 +30,9 @@
     "nonexistent_not_executed": 4,
     "nonexistent_total": 4,
     "ambiguous_not_executed": 3,
-    "ambiguous_total": 3
+    "ambiguous_total": 3,
+    "execution_accuracy_column_tolerant": 33,
+    "execution_accuracy_column_tolerant_first_try": 17
   },
   "usage": {
     "calls": 90,
@@ -58,7 +60,8 @@
         "guardrail: [qualify-columns] Unknown column: name"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 2,
@@ -80,7 +83,8 @@
         "guardrail: [qualify-columns] Unknown column: price"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 3,
@@ -102,7 +106,8 @@
         "guardrail: [qualify-columns] Unknown column: order_date"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 4,
@@ -125,7 +130,8 @@
         "guardrail: [no-all-columns-sensitive] selecting every column of sensitive table 'customers' is not allowed"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 5,
@@ -143,7 +149,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 6,
@@ -161,7 +168,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 7,
@@ -179,7 +187,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 8,
@@ -197,7 +206,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 9,
@@ -215,7 +225,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 10,
@@ -233,7 +244,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 11,
@@ -255,7 +267,8 @@
         "guardrail: [qualify-columns] Unknown column: amount"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 12,
@@ -273,7 +286,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 13,
@@ -293,7 +307,8 @@
         "guardrail: [qualify-columns] Column 'price' could not be resolved. Line: 1, Col: 37"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 14,
@@ -315,7 +330,8 @@
         "guardrail: [qualify-columns] Unknown column: price"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 15,
@@ -333,7 +349,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 16,
@@ -351,7 +368,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 17,
@@ -369,7 +387,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 18,
@@ -387,7 +406,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 19,
@@ -410,7 +430,8 @@
         "guardrail: [no-all-columns-sensitive] selecting every column of sensitive table 'customers' is not allowed"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 20,
@@ -428,7 +449,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 21,
@@ -446,7 +468,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 22,
@@ -468,7 +491,8 @@
         "guardrail: [qualify-columns] Unknown column: price"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 23,
@@ -486,7 +510,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 24,
@@ -508,7 +533,8 @@
         "guardrail: [qualify-columns] Unknown column: order_date"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 25,
@@ -528,7 +554,8 @@
         "guardrail: [qualify-columns] Column 'order_date' could not be resolved. Line: 3, Col: 16"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 26,
@@ -550,7 +577,8 @@
         "guardrail: [qualify-columns] Unknown column: unit_price"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 27,
@@ -568,7 +596,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 28,
@@ -590,7 +619,8 @@
         "guardrail: [qualify-columns] Unknown column: name"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 29,
@@ -610,7 +640,8 @@
         "guardrail: [qualify-columns] Column 'price' could not be resolved. Line: 1, Col: 34"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 30,
@@ -628,7 +659,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 31,
@@ -649,7 +681,8 @@
         "guardrail: [no-all-columns-sensitive] selecting every column of sensitive table 'customers' is not allowed"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 32,
@@ -667,7 +700,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 33,
@@ -685,7 +719,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 34,
@@ -703,7 +738,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 35,
@@ -721,7 +757,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 36,
@@ -739,7 +776,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 37,
@@ -761,7 +799,8 @@
         "guardrail: [qualify-columns] Unknown column: order_date"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 38,
@@ -783,7 +822,8 @@
         "guardrail: [qualify-columns] Unknown column: signup_date"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 39,
@@ -805,7 +845,8 @@
         "guardrail: [qualify-columns] Unknown column: price"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 40,
@@ -823,7 +864,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 41,
@@ -841,7 +883,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 42,
@@ -863,7 +906,8 @@
         "guardrail: [qualify-columns] Unknown column: amount"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 43,
@@ -885,7 +929,8 @@
         "guardrail: [qualify-columns] Unknown column: price"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 44,
@@ -1146,7 +1191,8 @@
         "guardrail: [qualify-columns] Column 'price' could not be resolved. Line: 3, Col: 30"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 58,
@@ -1164,7 +1210,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 59,
@@ -1182,7 +1229,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 60,
@@ -1200,7 +1248,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 61,
@@ -1218,7 +1267,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 62,
@@ -1236,7 +1286,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 63,
@@ -1258,7 +1309,8 @@
         "guardrail: [qualify-columns] Unknown column: price_cents"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 64,
@@ -1276,7 +1328,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 65,
@@ -1294,7 +1347,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 66,
@@ -1312,7 +1366,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 67,
@@ -1330,7 +1385,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     }
   ]
 }

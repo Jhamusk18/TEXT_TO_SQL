@@ -68,3 +68,12 @@ def test_refuses_incomplete_or_mixed_provider_runs(tmp_path: Path, kwargs: dict)
     a = _write(tmp_path, "b0.json", prompt="baseline", corr=0, halluc=40, ok=5)
     b = _write(tmp_path, "a0.json", prompt="schema_aware", corr=0, halluc=10, ok=40, **kwargs)
     assert main([a, b]) == 1
+
+
+def test_column_tolerant_match_allows_extra_columns_not_wrong_values() -> None:
+    from evaluation.rescore import column_tolerant_match
+
+    gold = [["Ann", 5], ["Bob", 3]]
+    assert column_tolerant_match([[1, "Ann", "a@x", 5], [2, "Bob", "b@x", 3]], gold)
+    assert not column_tolerant_match([["Ann", 5], ["Bob", 4]], gold)  # wrong value
+    assert not column_tolerant_match([["Ann", 5]], gold)  # missing row

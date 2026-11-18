@@ -20,7 +20,8 @@
     "needed_correction": 0,
     "corrected_ok": 0,
     "unsafe_rejected": 6,
-    "unsafe_total": 6
+    "unsafe_total": 6,
+    "execution_accuracy_column_tolerant": 47
   },
   "rows": [
     {
@@ -37,7 +38,8 @@
       "first_attempt_sql": "SELECT customers.full_name AS full_name, SUM(orders.total_cents) AS total_spend_cents FROM customers AS customers JOIN orders AS orders ON customers.id = orders.customer_id WHERE orders.status IN ('paid', 'shipped', 'completed') GROUP BY customers.full_name ORDER BY total_spend_cents DESC LIMIT 3",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": false
     },
     {
       "id": 2,
@@ -53,7 +55,8 @@
       "first_attempt_sql": "SELECT products.name AS name, SUM(order_items.quantity * order_items.unit_price_cents) AS revenue_cents FROM order_items AS order_items JOIN products AS products ON products.id = order_items.product_id GROUP BY products.name ORDER BY revenue_cents DESC LIMIT 5",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 3,
@@ -69,7 +72,8 @@
       "first_attempt_sql": "SELECT DATE_TRUNC('MONTH', orders.created_at) AS month, SUM(orders.total_cents) AS revenue_cents FROM orders AS orders GROUP BY DATE_TRUNC('MONTH', orders.created_at) ORDER BY month LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": false
     },
     {
       "id": 4,
@@ -85,7 +89,8 @@
       "first_attempt_sql": "SELECT customers.full_name AS full_name, customers.email AS email FROM customers AS customers JOIN orders AS orders ON orders.customer_id = customers.id GROUP BY customers.full_name, customers.email HAVING COUNT(orders.id) > 3 LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 5,
@@ -101,7 +106,8 @@
       "first_attempt_sql": "SELECT products.name AS name FROM products AS products LEFT JOIN order_items AS order_items ON order_items.product_id = products.id WHERE order_items.id IS NULL LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 6,
@@ -117,7 +123,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS customer_count FROM customers AS customers LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 7,
@@ -133,7 +140,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS total_orders FROM orders AS orders LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 8,
@@ -149,7 +157,8 @@
       "first_attempt_sql": "SELECT orders.status AS status, COUNT(*) AS order_count FROM orders AS orders GROUP BY orders.status ORDER BY order_count DESC LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 9,
@@ -165,7 +174,8 @@
       "first_attempt_sql": "SELECT customers.country AS country, COUNT(*) AS customer_count FROM customers AS customers GROUP BY customers.country ORDER BY customer_count DESC LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 10,
@@ -181,7 +191,8 @@
       "first_attempt_sql": "SELECT customers.country AS country, AVG(orders.total_cents) AS avg_order_cents FROM orders AS orders JOIN customers AS customers ON customers.id = orders.customer_id GROUP BY customers.country ORDER BY avg_order_cents DESC LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 11,
@@ -197,7 +208,8 @@
       "first_attempt_sql": "SELECT SUM(refunds.amount_cents) AS total_refunded_cents FROM refunds AS refunds LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 12,
@@ -213,7 +225,8 @@
       "first_attempt_sql": "SELECT refunds.reason AS reason, COUNT(*) AS refund_count FROM refunds AS refunds GROUP BY refunds.reason ORDER BY refund_count DESC LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 13,
@@ -229,7 +242,8 @@
       "first_attempt_sql": "SELECT products.name AS name, products.price_cents AS price_cents FROM products AS products ORDER BY products.price_cents DESC LIMIT 1",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 14,
@@ -245,7 +259,8 @@
       "first_attempt_sql": "SELECT products.category AS category, AVG(products.price_cents) AS avg_price_cents FROM products AS products GROUP BY products.category LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 15,
@@ -261,7 +276,8 @@
       "first_attempt_sql": "SELECT products.category AS category, COUNT(*) AS product_count FROM products AS products GROUP BY products.category ORDER BY product_count DESC LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 16,
@@ -277,7 +293,8 @@
       "first_attempt_sql": "SELECT products.name AS name, SUM(order_items.quantity) AS units_sold FROM order_items AS order_items JOIN products AS products ON products.id = order_items.product_id GROUP BY products.name ORDER BY units_sold DESC LIMIT 3",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 17,
@@ -293,7 +310,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS completed_orders FROM orders AS orders WHERE orders.status = 'completed' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 18,
@@ -309,7 +327,8 @@
       "first_attempt_sql": "SELECT SUM(orders.total_cents) AS total_value_cents FROM orders AS orders WHERE orders.status = 'completed' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 19,
@@ -325,7 +344,8 @@
       "first_attempt_sql": "SELECT customers.full_name AS full_name, customers.email AS email FROM customers AS customers JOIN orders AS orders ON orders.customer_id = customers.id GROUP BY customers.id, customers.full_name, customers.email HAVING COUNT(orders.id) > 2 LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": false
     },
     {
       "id": 20,
@@ -341,7 +361,8 @@
       "first_attempt_sql": "SELECT COUNT(DISTINCT refunds.order_id) AS distinct_refunded_orders FROM refunds AS refunds LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 21,
@@ -357,7 +378,8 @@
       "first_attempt_sql": "SELECT SUM(orders.total_cents) AS total_value_cents FROM orders AS orders WHERE orders.status = 'cancelled' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 22,
@@ -373,7 +395,8 @@
       "first_attempt_sql": "SELECT orders.id AS id, orders.total_cents AS total_cents FROM orders AS orders ORDER BY orders.total_cents DESC LIMIT 1",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 23,
@@ -389,7 +412,8 @@
       "first_attempt_sql": "SELECT AVG(orders.total_cents) AS avg_order_cents FROM orders AS orders LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 24,
@@ -405,7 +429,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS order_count FROM orders AS orders WHERE orders.created_at >= '2026-01-01' AND orders.created_at < '2027-01-01' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 25,
@@ -421,7 +446,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS order_count FROM orders AS orders WHERE orders.created_at >= '2025-12-01' AND orders.created_at < '2026-01-01' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 26,
@@ -437,7 +463,8 @@
       "first_attempt_sql": "SELECT products.category AS category, SUM(order_items.quantity * order_items.unit_price_cents) AS revenue_cents FROM order_items AS order_items JOIN products AS products ON products.id = order_items.product_id GROUP BY products.category LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 27,
@@ -453,7 +480,8 @@
       "first_attempt_sql": "SELECT customers.country AS country, SUM(orders.total_cents) AS total_revenue FROM orders AS orders JOIN customers AS customers ON customers.id = orders.customer_id WHERE orders.status IN ('paid', 'shipped', 'completed') GROUP BY customers.country ORDER BY total_revenue DESC LIMIT 1",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": false
     },
     {
       "id": 28,
@@ -469,7 +497,8 @@
       "first_attempt_sql": "SELECT customers.full_name AS full_name FROM customers AS customers WHERE customers.country = 'DE' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 29,
@@ -485,7 +514,8 @@
       "first_attempt_sql": "SELECT products.name AS name FROM products AS products WHERE products.price_cents > 10000 LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": false
     },
     {
       "id": 30,
@@ -501,7 +531,8 @@
       "first_attempt_sql": "SELECT products.category AS category, SUM(order_items.quantity) AS units_sold FROM order_items AS order_items JOIN products AS products ON products.id = order_items.product_id GROUP BY products.category ORDER BY units_sold DESC LIMIT 1",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 31,
@@ -517,7 +548,8 @@
       "first_attempt_sql": "SELECT DISTINCT customers.full_name AS full_name, customers.email AS email FROM customers AS customers JOIN orders AS orders ON orders.customer_id = customers.id JOIN refunds AS refunds ON refunds.order_id = orders.id LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 32,
@@ -533,7 +565,8 @@
       "first_attempt_sql": "SELECT SUM(order_items.quantity) AS total_units_sold FROM order_items AS order_items LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 33,
@@ -549,7 +582,8 @@
       "first_attempt_sql": "SELECT DATE_TRUNC('MONTH', orders.created_at) AS month, COUNT(*) AS order_count FROM orders AS orders GROUP BY DATE_TRUNC('MONTH', orders.created_at) ORDER BY month LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": false
     },
     {
       "id": 34,
@@ -565,7 +599,8 @@
       "first_attempt_sql": "SELECT customers.country AS country, COUNT(*) AS pending_orders FROM orders AS orders JOIN customers AS customers ON orders.customer_id = customers.id WHERE orders.status = 'pending' GROUP BY customers.country LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 35,
@@ -581,7 +616,8 @@
       "first_attempt_sql": "SELECT orders.status AS status, COUNT(refunds.id) AS refund_count FROM refunds AS refunds JOIN orders AS orders ON orders.id = refunds.order_id GROUP BY orders.status ORDER BY refund_count DESC LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 36,
@@ -597,7 +633,8 @@
       "first_attempt_sql": "SELECT customers.full_name AS full_name, customers.created_at AS created_at FROM customers AS customers ORDER BY customers.created_at DESC LIMIT 1",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 37,
@@ -613,7 +650,8 @@
       "first_attempt_sql": "SELECT MIN(orders.created_at) AS earliest_order_date FROM orders AS orders LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 38,
@@ -629,7 +667,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS customer_count FROM customers AS customers WHERE customers.created_at > '2025-10-31' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 39,
@@ -645,7 +684,8 @@
       "first_attempt_sql": "SELECT customers.country AS country, SUM(orders.total_cents) AS total_spend_cents FROM orders AS orders JOIN customers AS customers ON customers.id = orders.customer_id GROUP BY customers.country LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 40,
@@ -661,7 +701,8 @@
       "first_attempt_sql": "SELECT products.name AS name, products.price_cents AS price_cents FROM products AS products WHERE products.category = 'books' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 41,
@@ -677,7 +718,8 @@
       "first_attempt_sql": "SELECT orders.id AS id FROM orders AS orders JOIN order_items AS order_items ON order_items.order_id = orders.id GROUP BY orders.id ORDER BY COUNT(order_items.id) DESC LIMIT 1",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": false
     },
     {
       "id": 42,
@@ -693,7 +735,8 @@
       "first_attempt_sql": "SELECT AVG(refunds.amount_cents) AS avg_refund_cents FROM refunds AS refunds LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 43,
@@ -709,7 +752,8 @@
       "first_attempt_sql": "SELECT SUM(orders.total_cents) AS total_spend_cents FROM orders AS orders JOIN customers AS customers ON orders.customer_id = customers.id WHERE customers.country = 'PH' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 44,
@@ -941,7 +985,8 @@
       "first_attempt_sql": "SELECT products.category AS category, AVG(products.price_cents) AS avg_price_cents FROM products AS products GROUP BY products.category ORDER BY avg_price_cents DESC LIMIT 1",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 58,
@@ -957,7 +1002,8 @@
       "first_attempt_sql": "SELECT MAX(products.price_cents) AS highest_price_cents FROM products AS products LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 59,
@@ -973,7 +1019,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS cancelled_orders FROM orders AS orders WHERE orders.status = 'cancelled' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 60,
@@ -989,7 +1036,8 @@
       "first_attempt_sql": "SELECT AVG(order_items.unit_price_cents) AS avg_unit_price_cents FROM order_items AS order_items LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 61,
@@ -1005,7 +1053,8 @@
       "first_attempt_sql": "SELECT COUNT(DISTINCT orders.customer_id) AS distinct_customers FROM orders AS orders LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 62,
@@ -1021,7 +1070,8 @@
       "first_attempt_sql": "SELECT products.category AS category, SUM(order_items.quantity) AS total_quantity FROM order_items AS order_items JOIN products AS products ON products.id = order_items.product_id GROUP BY products.category LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 63,
@@ -1037,7 +1087,8 @@
       "first_attempt_sql": "SELECT orders.status AS status, SUM(orders.total_cents) AS total_order_cents FROM orders AS orders GROUP BY orders.status LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 64,
@@ -1053,7 +1104,8 @@
       "first_attempt_sql": "SELECT AVG(sub.item_count) AS avg_units_per_order FROM (SELECT order_items.order_id AS order_id, SUM(order_items.quantity) AS item_count FROM order_items AS order_items GROUP BY order_items.order_id) AS sub LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 65,
@@ -1069,7 +1121,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS refund_count FROM refunds AS refunds WHERE NOT refunds.reason IS NULL LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 66,
@@ -1085,7 +1138,8 @@
       "first_attempt_sql": "SELECT SUM(orders.total_cents) AS total_revenue_cents FROM orders AS orders WHERE orders.status = 'completed' LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     },
     {
       "id": 67,
@@ -1101,7 +1155,8 @@
       "first_attempt_sql": "SELECT COUNT(*) AS product_count FROM products AS products WHERE products.price_cents > 5000 LIMIT 200",
       "hallucinations": [],
       "note": "",
-      "corrections": []
+      "corrections": [],
+      "accurate_column_tolerant": true
     }
   ]
 }

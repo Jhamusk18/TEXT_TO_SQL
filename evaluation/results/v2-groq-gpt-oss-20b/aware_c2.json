@@ -30,7 +30,9 @@
     "nonexistent_not_executed": 3,
     "nonexistent_total": 4,
     "ambiguous_not_executed": 3,
-    "ambiguous_total": 3
+    "ambiguous_total": 3,
+    "execution_accuracy_column_tolerant": 48,
+    "execution_accuracy_column_tolerant_first_try": 48
   },
   "usage": {
     "calls": 64,
@@ -54,7 +56,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 2,
@@ -72,7 +75,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 3,
@@ -90,7 +94,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 4,
@@ -108,7 +113,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 5,
@@ -126,7 +132,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 6,
@@ -144,7 +151,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 7,
@@ -162,7 +170,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 8,
@@ -180,7 +189,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 9,
@@ -198,7 +208,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 10,
@@ -216,7 +227,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 11,
@@ -234,7 +246,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 12,
@@ -252,7 +265,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 13,
@@ -270,7 +284,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 14,
@@ -288,7 +303,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 15,
@@ -306,7 +322,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 16,
@@ -324,7 +341,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 17,
@@ -342,7 +360,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 18,
@@ -360,7 +379,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 19,
@@ -378,7 +398,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 20,
@@ -396,7 +417,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 21,
@@ -414,7 +436,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 22,
@@ -432,7 +455,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 23,
@@ -450,7 +474,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 24,
@@ -468,7 +493,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 25,
@@ -486,7 +512,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 26,
@@ -504,7 +531,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 27,
@@ -522,7 +550,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 28,
@@ -540,7 +569,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 29,
@@ -558,7 +588,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 30,
@@ -576,7 +607,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 31,
@@ -594,7 +626,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 32,
@@ -612,7 +645,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 33,
@@ -630,7 +664,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 34,
@@ -648,7 +683,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 35,
@@ -666,7 +702,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 36,
@@ -686,7 +723,8 @@
         "guardrail: [no-all-columns-sensitive] selecting every column of sensitive table 'customers' is not allowed"
       ],
       "first_attempt_ok": false,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": false
     },
     {
       "id": 37,
@@ -704,7 +742,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 38,
@@ -722,7 +761,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 39,
@@ -740,7 +780,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 40,
@@ -758,7 +799,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 41,
@@ -776,7 +818,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 42,
@@ -794,7 +837,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 43,
@@ -812,7 +856,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 44,
@@ -1066,7 +1111,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": false
+      "first_attempt_accurate": false,
+      "accurate_column_tolerant": true
     },
     {
       "id": 58,
@@ -1084,7 +1130,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 59,
@@ -1102,7 +1149,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 60,
@@ -1120,7 +1168,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 61,
@@ -1138,7 +1187,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 62,
@@ -1156,7 +1206,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 63,
@@ -1174,7 +1225,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 64,
@@ -1192,7 +1244,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 65,
@@ -1210,7 +1263,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 66,
@@ -1228,7 +1282,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     },
     {
       "id": 67,
@@ -1246,7 +1301,8 @@
       "note": "",
       "corrections": [],
       "first_attempt_ok": true,
-      "first_attempt_accurate": true
+      "first_attempt_accurate": true,
+      "accurate_column_tolerant": true
     }
   ]
 }
