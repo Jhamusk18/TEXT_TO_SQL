@@ -31,7 +31,11 @@ Setup: Groq free tier, temperature 0, PostgreSQL seed in `db/init/`, 67 question
 - Execute: `execution/executor.py` (read-only transaction, statement timeout).
 - 50+ tasks: 54 answerable questions with gold SQL; oracle check 54/54.
 
-Not true as written in the header: "LLM Function Calling". The system uses plain chat completions that return SQL text.
+Function calling: implemented as an optional mode (`GENERATION_MODE=tools`, `src/text_to_sql_engine/tool_calling.py`):
+the model calls `describe_table`, `submit_sql` and `cannot_answer`; failed submissions return as tool
+results with the error and catalog facts. Tested offline (`tests/test_tool_calling.py`) and live on Groq.
+Its full 54-question evaluation was cut off by the free daily token cap (13 questions scored, file marked
+incomplete), so no tool-mode metric is claimed. The default mode is text generation.
 
 ## Bullet 2: "schema-aware prompting with metadata and sample rows, reducing hallucinated tables/columns by 40%"
 
@@ -46,7 +50,8 @@ Measured:
 | gpt-oss-20b (v2) | 17/54 hallucinated | 0/54 | 100% |
 | qwen3.8-27b (v1) | 34/54 | 0/54 | 100% |
 
-- Accuracy: column names only 37/54 (68.5%) → full schema-aware 45/54 (83.3%).
+- Accuracy: column names only 37/54 (68.5%) → full schema-aware 45/54 (83.3%) strict;
+  41/54 (75.9%) → 48/54 (88.9%) column-tolerant (`evaluation/rescore.py`: extra columns allowed).
 - Sample rows alone: 0 vs 3 rows gave the same result (0/54 hallucinations, 45/54 accurate) on this
   5-table schema. Their effect is not separately measurable here.
 

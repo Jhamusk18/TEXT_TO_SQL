@@ -168,13 +168,19 @@ What has been measured (full evidence and per-bullet mapping: [`docs/RESUME_EVID
 | schema-aware, no sample rows | 0/54 | 53/54 → 54/54 | 45/54 (83.3%) → 45/54 | 1/1 |
 | schema-aware + sample rows (default) | 0/54 | 53/54 (98.1%) → 54/54 (100%) | 45/54 (83.3%) → 45/54 | 1/1 |
 
+  Column-tolerant accuracy (`python -m evaluation.rescore`; the gold columns must appear with identical values, extra columns allowed, row count equal): schema-aware 48/54 (88.9%), column names only 41/54 (75.9%), names only 17/54 → 33/54 with correction. Strict accuracy stays the headline number.
+
   In every arm 6/6 unsafe requests were refused and no data changed. With any column information the model also declined 3/4 nonexistent-column and 3/3 ambiguous questions instead of inventing SQL; the names-only prompt falsely declined 15/54 answerable questions.
+- **Function calling** (`GENERATION_MODE=tools`, `tool_calling.py`): runs on the same model were stopped by the Groq free-tier daily token cap (200,000 tokens/day for `gpt-oss-20b`). `evaluation/results/v2-groq-gpt-oss-20b/incomplete/aware_tools_c2.json` holds 13 of 67 questions (13/13 first-try success, 11/13 strict accuracy) and `names_only_tools_c2.json` none; both are marked `incomplete`, `compare.py` refuses them, and no tool-mode result is claimed. Finish with `--resume` once the quota frees.
 - **v1 ablation** (code before the catalog-grounded correction prompt), Groq `qwen/qwen3.8-27b`, `evaluation/results/v1-groq-qwen3.8-27b/`: first-try hallucination 34/54 (names only) → 0/54 (schema-aware); correction lifted names-only query success 14/54 → 23/54 (9 of 40 failures fixed).
 - Earlier Gemini `gemini-3.5-flash-lite` baseline runs (names-only prompt only; the schema-aware arms were stopped by the free-tier quota) are kept in `evaluation/results/gemini/` and are not compared with the Groq files.
 
 What these show: schema-aware prompting removes hallucinated tables/columns (100% relative reduction vs names-only, on both models) and raises accuracy over a column-list prompt (68.5% → 83.3%); sample rows on top of metadata had no measurable effect on this small schema. Feeding the error plus the real catalog columns back to the model fixes 95% of failed first attempts (v1 fixed 23%), but with schema-aware prompting first attempts already succeed 98% of the time, so the end-to-end lift is largest when the prompt context is weak.
 
 ### Architecture in one paragraph
+
+Diagram and design notes: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 
 A question is embedded and used to rank per-table schema cards (introspected from `pg_catalog`) and pick 3 few-shot examples; the prompt builder assembles dialect rules, cards, examples, and the question. The LLM's SQL is parsed once with sqlglot and folded through AST rules (single statement, SELECT only, table allowlist, comment stripping, LIMIT injection, sensitive-table star denial, column qualification). Validated SQL is preflighted with `EXPLAIN` and executed in a read-only transaction with a server-side timeout. Fixable errors are fed back to the model with the failing SQL for up to 2 rounds; policy errors stop immediately. The FastAPI service returns the SQL, rows, summary, retrieved tables, and the correction trace; the Streamlit app in `ui/app.py` renders them.
 
@@ -212,6 +218,7 @@ Copy `.env.example` to `.env` and adjust. Every variable is optional — with no
 | `SCHEMA_TOKEN_BUDGET` | `2000` | Approximate token cap for schema cards in the prompt |
 | `SAMPLE_ROWS_PER_TABLE` | `3` | Real rows per non-sensitive table shown in schema cards (`0` disables; sensitive tables are never sampled) |
 | `PROMPT_MODE` | `schema_aware` | `baseline` = bare table names; `columns_only` = table + column names; both without exemplars (ablation only) |
+| `GENERATION_MODE` | `text` | `tools` = LLM function calling (`describe_table`, `submit_sql`, `cannot_answer`); Groq/OpenAI only |
 | `SENSITIVE_TABLES` | `customers` | Comma-separated tables where `SELECT *` is denied |
 | `HISTORY_DB_PATH` | `artifacts/history.sqlite` | SQLite file for query history |
 
