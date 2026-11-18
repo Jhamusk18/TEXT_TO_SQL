@@ -19,7 +19,7 @@ SYSTEM_PROMPT = (
 
 CANNOT_ANSWER = "CANNOT_ANSWER"
 
-_DECLINE_RULE = (
+DECLINE_RULE = (
     f"If the question needs a table or column that is not listed, or is too vague to "
     f"map to one query, reply with exactly `{CANNOT_ANSWER}: <short reason>` instead of SQL "
     "(never substitute a different column)."
@@ -43,7 +43,7 @@ class PromptBuilder:
             f"Dialect: {self._dialect}.",
             "Rules: one SELECT statement only; use only the tables and columns "
             "below; qualify columns with their table name; do not add comments.",
-            _DECLINE_RULE,
+            DECLINE_RULE,
             "",
             "### Schema",
             *[card.text for card in cards],
@@ -76,7 +76,7 @@ class PromptBuilder:
         lines = [
             f"Your previous {self._dialect} SQL for the question below failed.",
             "Fix the SQL. Respond with the corrected single SELECT statement only. "
-            + _DECLINE_RULE,
+            + DECLINE_RULE,
             "",
             "### Question",
             question,

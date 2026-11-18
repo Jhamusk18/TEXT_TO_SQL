@@ -53,7 +53,10 @@ def _problems(runs: list[tuple[Path, dict[str, Any]]]) -> list[str]:
 
 def _key(run: dict[str, Any]) -> tuple[str, int, int]:
     c = run["config"]
-    return c["prompt_mode"], int(c["max_corrections"]), int(c.get("sample_rows", 3))
+    prompt = c["prompt_mode"]
+    if c.get("generation_mode", "text") == "tools":
+        prompt += "+tools"
+    return prompt, int(c["max_corrections"]), int(c.get("sample_rows", 3))
 
 
 def main(argv: list[str] | None = None) -> int:

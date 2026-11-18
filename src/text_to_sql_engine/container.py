@@ -130,6 +130,7 @@ def build_components(
         max_corrections=settings.max_correction_rounds,
         prompt_mode=settings.prompt_mode,
         summarize=settings.summarize_results,
+        generation_mode=settings.generation_mode,
     )
     return Components(
         pipeline=pipeline,

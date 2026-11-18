@@ -21,6 +21,7 @@ from text_to_sql_engine.schema.cards import (
     build_name_only_card,
     select_cards,
 )
+from text_to_sql_engine.tool_calling import ToolCallingLoop
 
 
 class TextToSqlPipeline:
@@ -46,6 +47,7 @@ class TextToSqlPipeline:
         dialect: str = "postgres",
         prompt_mode: str = "schema_aware",
         summarize: bool = True,
+        generation_mode: str = "text",
     ) -> None:
         self._schema_cache = schema_cache
         self._embedder = embedder
@@ -59,6 +61,9 @@ class TextToSqlPipeline:
         self._dialect = dialect
         self._prompt_mode = prompt_mode
         self._summarize_enabled = summarize
+        if generation_mode == "tools" and not callable(getattr(llm, "chat", None)):
+            raise ValueError("GENERATION_MODE=tools needs a tool-calling provider (Groq/OpenAI)")
+        self._generation_mode = generation_mode
         self._prompts = PromptBuilder(dialect=dialect)
 
     @property
@@ -110,7 +115,16 @@ class TextToSqlPipeline:
             schema=schema,
             schema_text="\n".join(card.text for card in cards),
         )
-        outcome = loop.run(question, prompt)
+        if self._generation_mode == "tools":
+            tool_loop = ToolCallingLoop(
+                self._llm,  # type: ignore[arg-type]
+                loop,
+                schema,
+                self._max_corrections,
+            )
+            outcome = tool_loop.run(question, prompt)
+        else:
+            outcome = loop.run(question, prompt)
         latency_ms = round((time.perf_counter() - started) * 1000, 2)
 
         summary: str | None = None

@@ -168,6 +168,7 @@ def main(argv: list[str] | None = None) -> int:
         "--prompt-mode", choices=["schema_aware", "columns_only", "baseline"], default=None
     )
     parser.add_argument("--sample-rows", type=int, default=None)
+    parser.add_argument("--generation-mode", choices=["text", "tools"], default=None)
     parser.add_argument("--max-corrections", type=int, default=None)
     parser.add_argument("--out", type=Path, default=None)
     parser.add_argument(
@@ -199,6 +200,8 @@ def main(argv: list[str] | None = None) -> int:
         overrides["prompt_mode"] = args.prompt_mode
     if args.max_corrections is not None:
         overrides["max_correction_rounds"] = args.max_corrections
+    if args.generation_mode:
+        overrides["generation_mode"] = args.generation_mode
     if args.sample_rows is not None:
         overrides["sample_rows_per_table"] = args.sample_rows
     settings = settings.model_copy(update=overrides)
@@ -234,6 +237,7 @@ def main(argv: list[str] | None = None) -> int:
             "prompt_mode": settings.prompt_mode,
             "max_corrections": settings.max_correction_rounds,
             "sample_rows": settings.sample_rows_per_table,
+            "generation_mode": settings.generation_mode,
         }
         mismatched = {k: (pc.get(k), v) for k, v in same.items() if pc.get(k) != v}
         if mismatched:
@@ -371,6 +375,7 @@ def main(argv: list[str] | None = None) -> int:
         "prompt_mode": settings.prompt_mode,
         "max_corrections": settings.max_correction_rounds,
         "sample_rows": settings.sample_rows_per_table,
+        "generation_mode": settings.generation_mode,
         "questions": len(questions),
         "incomplete": incomplete,
         "llm_fallback_calls": llm_fallback_calls,

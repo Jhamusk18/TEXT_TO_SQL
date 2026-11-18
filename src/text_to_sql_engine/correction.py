@@ -167,6 +167,10 @@ class CorrectionLoop:
             )
         raise RuntimeError("unreachable: loop always returns within the attempt budget")
 
+    def check(self, candidate: str) -> _Attempt:
+        """Validate, EXPLAIN and execute one candidate (used by the tool-calling loop)."""
+        return self._try_attempt(candidate)
+
     def _try_attempt(self, candidate: str) -> _Attempt:
         """One pass through guardrails, EXPLAIN preflight, and execution."""
         try:
