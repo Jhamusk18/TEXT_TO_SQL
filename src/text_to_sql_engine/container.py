@@ -32,6 +32,8 @@ from text_to_sql_engine.schema.cache import SchemaCache, SchemaProvider, StaticS
 from text_to_sql_engine.schema.fixtures import DEMO_SCHEMA
 from text_to_sql_engine.schema.introspect import PostgresSchemaProvider
 
+GEMINI_OPENAI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
 
 @dataclass
 class Components:
@@ -67,12 +69,23 @@ def build_components(
         embedder = FakeEmbedder()
     elif llm_mode == "gemini":
         key = settings.gemini_api_key or ""
-        gemini_embedder = CachedEmbedder(
-            GeminiEmbedder(key, model=settings.gemini_embedding_model)
-        )
+        gemini_embedder: Embedder
+        if settings.gemini_api == "openai_compat":
+            gemini_embedder = CachedEmbedder(
+                OpenAIEmbedder(key, model=settings.gemini_embedding_model,
+                               base_url=GEMINI_OPENAI_BASE_URL)
+            )
+        else:
+            gemini_embedder = CachedEmbedder(
+                GeminiEmbedder(key, model=settings.gemini_embedding_model)
+            )
         embedder = gemini_embedder
         if llm is None:
-            llm = GeminiProvider(key, model=settings.gemini_model)
+            if settings.gemini_api == "openai_compat":
+                llm = OpenAIProvider(key, model=settings.gemini_model,
+                                     base_url=GEMINI_OPENAI_BASE_URL)
+            else:
+                llm = GeminiProvider(key, model=settings.gemini_model)
             if settings.llm_fallback == "auto" and settings.groq_api_key:
                 llm = FallbackLLM(
                     llm,

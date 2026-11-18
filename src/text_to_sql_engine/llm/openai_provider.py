@@ -21,8 +21,9 @@ class OpenAIProvider:
         model: str = "gpt-4o-mini",
         temperature: float = 0.0,
         reasoning_effort: str | None = None,
+        base_url: str | None = None,
     ) -> None:
-        self._client = OpenAI(api_key=api_key)
+        self._client = OpenAI(api_key=api_key, base_url=base_url, max_retries=5)
         self._model = model
         self._temperature = temperature
         self._reasoning_effort = reasoning_effort

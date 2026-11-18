@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
     gemini_embedding_model: str = "gemini-embedding-2"
+    # "native": google-genai SDK, key in the x-goog-api-key header.
+    # "openai_compat": Gemini's OpenAI-compatible endpoint, key as Authorization: Bearer
+    # (what a proxy-injected bearer credential provides); also enables tool calling.
+    gemini_api: Literal["native", "openai_compat"] = "native"
     llm_fallback: Literal["auto", "none"] = "auto"
     groq_api_key: str | None = None
     groq_model: str = "qwen/qwen3.8-27b"

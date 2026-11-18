@@ -149,3 +149,18 @@ def test_gemini_sql_still_goes_through_guardrails(
     assert result.status is QueryStatus.REJECTED
     assert result.error is not None and "select-only" in result.error
     assert executor.executed == []
+
+
+def test_openai_compat_mode_targets_gemini_openai_endpoint(tmp_path: Path) -> None:
+    from text_to_sql_engine.llm.openai_provider import OpenAIProvider
+
+    settings = Settings(
+        database_url=None, llm_provider="gemini", gemini_api_key="k",
+        gemini_api="openai_compat", llm_fallback="none",
+        history_db_path=str(tmp_path / "h.sqlite"),
+    )
+    components = build_components(settings)
+    llm = components.pipeline.llm
+    assert isinstance(llm, OpenAIProvider)
+    assert "generativelanguage.googleapis.com/v1beta/openai" in str(llm._client.base_url)
+    assert components.llm_mode == "gemini"
