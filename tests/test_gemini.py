@@ -68,7 +68,7 @@ def test_embedder_rejects_mismatched_response_size() -> None:
     models = _StubModels()
     models.embed_content = lambda **_: SimpleNamespace(embeddings=[])  # type: ignore[method-assign]
     with pytest.raises(RuntimeError, match="0 embeddings for 2 texts"):
-        GeminiEmbedder("unused", client=_client(models)).embed(["a", "b"])
+        GeminiEmbedder("unused", model="gemini-embedding-001", client=_client(models)).embed(["a", "b"])
 
 
 def test_embedder_empty_input_makes_no_call() -> None:
@@ -124,7 +124,7 @@ def test_gemini_needs_no_openai_key_and_reports_provider(
     result = ExecutionResult(columns=["status", "count"], rows=[{"status": "paid", "count": 1}])
     executor = FakeExecutor(default_result=result)
     components = build_components(settings, llm=llm, executor=executor)
-    assert embedder_calls == [("test-key-not-real", "gemini-embedding-001")]
+    assert embedder_calls == [("test-key-not-real", "gemini-embedding-2")]
     assert components.pipeline.answer("How many orders per status?").status is QueryStatus.OK
     assert components.llm_mode == "gemini"
     assert components.llm_model == "gemini-3.5-flash-lite"

@@ -204,7 +204,7 @@ Copy `.env.example` to `.env` and adjust. Every variable is optional — with no
 | `LLM_PROVIDER` | `auto` | `auto` (Gemini, then Groq, then OpenAI, by which key is set; else fake), `gemini`, `groq`, or `openai` |
 | `GEMINI_API_KEY` | *(unset)* | Enables the Gemini provider and embedder (free tier available) |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Chat model for generation, correction, summaries |
-| `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-001` | Embeddings for schema-card and few-shot retrieval |
+| `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-2` | Embeddings for schema-card and few-shot retrieval |
 | `GROQ_API_KEY` | *(unset)* | Enables the Groq provider (`LLM_PROVIDER=groq`); retrieval uses the local lexical embedder because Groq has no embeddings API |
 | `GROQ_MODEL` | `qwen/qwen3.8-27b` | Chat model for generation, correction, summaries |
 | `GROQ_REASONING_EFFORT` | *(unset)* | `low`/`medium`/`high` for reasoning models such as `openai/gpt-oss-20b` |

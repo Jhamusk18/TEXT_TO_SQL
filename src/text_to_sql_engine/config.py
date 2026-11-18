@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     llm_provider: Literal["auto", "gemini", "groq", "openai"] = "auto"
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
-    gemini_embedding_model: str = "gemini-embedding-001"
+    gemini_embedding_model: str = "gemini-embedding-2"
     llm_fallback: Literal["auto", "none"] = "auto"
     groq_api_key: str | None = None
     groq_model: str = "qwen/qwen3.8-27b"
