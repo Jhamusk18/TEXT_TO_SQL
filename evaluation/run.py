@@ -1,6 +1,6 @@
 """Evaluation harness for the text-to-sql pipeline.
 
-    python -m evaluation.run                 # real LLM + PostgreSQL (needs an API key + DATABASE_URL)
+    python -m evaluation.run                 # real LLM + PostgreSQL (API key + DATABASE_URL)
     python -m evaluation.run --oracle        # dataset/pipeline sanity check, NOT a model evaluation
     python -m evaluation.run --limit 10      # first N questions only
 
