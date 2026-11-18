@@ -171,11 +171,21 @@ What has been measured (full evidence and per-bullet mapping: [`docs/RESUME_EVID
   Column-tolerant accuracy (`python -m evaluation.rescore`; the gold columns must appear with identical values, extra columns allowed, row count equal): schema-aware 48/54 (88.9%), column names only 41/54 (75.9%), names only 17/54 → 33/54 with correction. Strict accuracy stays the headline number.
 
   In every arm 6/6 unsafe requests were refused and no data changed. With any column information the model also declined 3/4 nonexistent-column and 3/3 ambiguous questions instead of inventing SQL; the names-only prompt falsely declined 15/54 answerable questions.
+- **v3 ablation, second model** (same code, questions and arms as v2), Gemini `gemini-3.5-flash-lite` (OpenAI-compatible endpoint, temperature 0, no fallback model), all four arms on 2026-11-18, files in `evaluation/results/v3-gemini-3.5-flash-lite/`. This is a separate experiment on a different model and is not pooled with the Groq numbers.
+
+| Prompt | First-try hallucination | Query success OFF → ON | Strict accuracy OFF → ON | Column-tolerant accuracy OFF → ON | Failed first attempts fixed | Falsely declined |
+|---|---|---|---|---|---|---|
+| table names only (`baseline`) | 10/54 (18.5%) | 7/54 (13.0%) → 17/54 (31.5%) | 5/54 → 12/54 | 5/54 → 12/54 | 10/10 | 37/54 |
+| table + column names (`columns_only`) | 0/54 | 49/54 (90.7%) → 53/54 (98.1%) | 36/54 (66.7%) → 37/54 (68.5%) | 39/54 → 40/54 | 4/4 | 1/54 |
+| schema-aware, no sample rows | 0/54 | 50/54 (92.6%) → 53/54 (98.1%) | 43/54 (79.6%) → 44/54 (81.5%) | 45/54 → 47/54 | 3/3 | 1/54 |
+| schema-aware + sample rows (default) | 0/54 | 51/54 (94.4%) → 54/54 (100%) | 42/54 (77.8%) → 43/54 (79.6%) | 44/54 → 46/54 | 3/3 | 0/54 |
+
+  In every Gemini arm 6/6 unsafe requests were refused, 4/4 nonexistent-column and 3/3 ambiguous questions were not executed, and no data changed. With names only, Gemini declined 37/54 answerable questions instead of guessing, so its low query success there is mostly refusals rather than failed SQL.
 - **Function calling** (`GENERATION_MODE=tools`, `tool_calling.py`): runs on the same model were stopped by the Groq free-tier daily token cap (200,000 tokens/day for `gpt-oss-20b`). `evaluation/results/v2-groq-gpt-oss-20b/incomplete/aware_tools_c2.json` holds 13 of 67 questions (13/13 first-try success, 11/13 strict accuracy) and `names_only_tools_c2.json` none; both are marked `incomplete`, `compare.py` refuses them, and no tool-mode result is claimed. Finish with `--resume` once the quota frees.
 - **v1 ablation** (code before the catalog-grounded correction prompt), Groq `qwen/qwen3.8-27b`, `evaluation/results/v1-groq-qwen3.8-27b/`: first-try hallucination 34/54 (names only) → 0/54 (schema-aware); correction lifted names-only query success 14/54 → 23/54 (9 of 40 failures fixed).
-- Earlier Gemini `gemini-3.5-flash-lite` baseline runs (names-only prompt only; the schema-aware arms were stopped by the free-tier quota) are kept in `evaluation/results/gemini/` and are not compared with the Groq files.
+- Earlier Gemini `gemini-3.5-flash-lite` baseline runs (names-only prompt only; the schema-aware arms were stopped by the free-tier quota) are kept in `evaluation/results/gemini/`; the complete v3 run above supersedes them. Neither is compared with the Groq files.
 
-What these show: schema-aware prompting removes hallucinated tables/columns (100% relative reduction vs names-only, on both models) and raises accuracy over a column-list prompt (68.5% → 83.3%); sample rows on top of metadata had no measurable effect on this small schema. Feeding the error plus the real catalog columns back to the model fixes 95% of failed first attempts (v1 fixed 23%), but with schema-aware prompting first attempts already succeed 98% of the time, so the end-to-end lift is largest when the prompt context is weak.
+What these show: schema-aware prompting removes hallucinated tables/columns (100% relative reduction vs names-only, on both models) and raises accuracy over a column-list prompt (68.5% → 83.3%); sample rows on top of metadata had no measurable effect on this small schema. Feeding the error plus the real catalog columns back to the model fixes 95% of failed first attempts (v1 fixed 23%), but with schema-aware prompting first attempts already succeed 98% of the time, so the end-to-end lift is largest when the prompt context is weak. The Gemini run shows the same pattern on a second model: hallucinations 10/54 → 0/54 with schema-aware prompting, strict accuracy 68.5% (column names) → 79.6% (schema-aware), and correction fixed every failed first attempt (3/3 to 10/10 per arm).
 
 ### Architecture in one paragraph
 
