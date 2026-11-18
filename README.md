@@ -147,7 +147,7 @@ Note on this seed data: no customer has more than 3 orders and every product has
 
 ### Evaluation
 
-`evaluation/questions.jsonl` has 56 questions written against this schema: 43 answerable (each with a gold SQL), 6 unsafe requests, 4 that reference nonexistent columns or tables, and 3 ambiguous or invalid inputs.
+`evaluation/questions.jsonl` has 67 questions written against this schema: 54 answerable (each with a gold SQL), 6 unsafe requests, 4 that reference nonexistent columns or tables, and 3 ambiguous or invalid inputs.
 
 ```bash
 make eval-oracle    # sanity check of dataset + pipeline using the gold SQL, no LLM
@@ -158,8 +158,17 @@ make eval           # real model: needs GEMINI_API_KEY (or OPENAI_API_KEY) and D
 
 What has been measured so far:
 
-- `make eval-oracle` on PostgreSQL: 43/43 gold queries pass validation and execute and match themselves, 6/6 unsafe statements are rejected, and no table row count changed. This validates the dataset and the guardrails. It says nothing about model quality, because the "model" is the answer key.
-- No live-model numbers are recorded in this repository. The Gemini and OpenAI adapters are unit-tested with stub clients only. Run `make eval` with a real key and report the numbers it prints.
+- `make eval-oracle` on PostgreSQL: 54/54 gold queries pass validation and execute and match themselves, 6/6 unsafe statements are rejected, and no table row count changed. This validates the dataset and the guardrails. It says nothing about model quality, because the "model" is the answer key.
+- Live-model ablation (Gemini `gemini-3.5-flash-lite`, 54 answerable questions, committed in `evaluation/results/`). Run `make ablation` to reproduce; `python -m evaluation.compare` prints the table. A *hallucination* is a first-attempt query that references a table or column absent from the schema (static sqlglot check, `evaluation/hallucination.py`).
+
+| Arm | Prompt | Corrections | First-try hallucination | Execution success | Execution accuracy |
+|---|---|---|---|---|---|
+| `baseline_c0` | bare table names, no exemplars | 0 | 50/54 (92.6%) | 4/54 (7.4%) | 4/54 (7.4%) |
+| `baseline_c2` | bare table names, no exemplars | 2 | 46/54 (85.2%) | 25/54 (46.3%) | 20/54 (37.0%) |
+| `aware_c0`, `aware_c2` | schema cards + sample rows + exemplars | 0 / 2 | **not yet run** | | |
+
+  The two schema-aware arms were interrupted by the Gemini free-tier daily quota (500 generate requests/day) and have not been re-run; rerun `make ablation` after the quota resets. Until then, no schema-aware vs baseline figure on the current prompt is claimed. Runs vary slightly even at temperature 0 (first-try hallucinations were 50 vs 46 across the two baseline runs).
+- Self-correction effect (baseline prompt, same questions, same model): execution success 4/54 -> 25/54 with up to 2 correction rounds; 17 of 46 failing questions were fixed. This is measured on the deliberately weak baseline prompt, where first attempts fail often. With the schema-aware prompt, first attempts almost always succeed, so the lift there is expected to be small.
 
 ### Architecture in one paragraph
 
@@ -192,7 +201,9 @@ Copy `.env.example` to `.env` and adjust. Every variable is optional — with no
 | `DEFAULT_ROW_LIMIT` | `200` | `LIMIT` injected when the model forgot one |
 | `MAX_CORRECTION_ROUNDS` | `2` | Retry budget of the self-correction loop |
 | `STATEMENT_TIMEOUT_MS` | `5000` | Server-enforced per-statement timeout |
-| `SCHEMA_TOKEN_BUDGET` | `1200` | Approximate token cap for schema cards in the prompt |
+| `SCHEMA_TOKEN_BUDGET` | `2000` | Approximate token cap for schema cards in the prompt |
+| `SAMPLE_ROWS_PER_TABLE` | `3` | Real rows per non-sensitive table shown in schema cards (`0` disables; sensitive tables are never sampled) |
+| `PROMPT_MODE` | `schema_aware` | `baseline` = bare table names, no exemplars (ablation only) |
 | `SENSITIVE_TABLES` | `customers` | Comma-separated tables where `SELECT *` is denied |
 | `HISTORY_DB_PATH` | `artifacts/history.sqlite` | SQLite file for query history |
 

@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from text_to_sql_engine.config import Settings
 from text_to_sql_engine.demo_data import DEMO_SQL_TEMPLATES, FAKE_LLM_NO_TEMPLATE_SQL
 from text_to_sql_engine.embeddings.base import Embedder
+from text_to_sql_engine.embeddings.cached import CachedEmbedder
 from text_to_sql_engine.embeddings.fake import FakeEmbedder
 from text_to_sql_engine.embeddings.gemini_embedder import GeminiEmbedder
 from text_to_sql_engine.embeddings.openai_embedder import OpenAIEmbedder
@@ -65,12 +66,12 @@ def build_components(
         key = settings.gemini_api_key or ""
         if llm is None:
             llm = GeminiProvider(key, model=settings.gemini_model)
-        embedder = GeminiEmbedder(key, model=settings.gemini_embedding_model)
+        embedder = CachedEmbedder(GeminiEmbedder(key, model=settings.gemini_embedding_model))
     else:
         key = settings.openai_api_key or ""
         if llm is None:
             llm = OpenAIProvider(key, model=settings.openai_model)
-        embedder = OpenAIEmbedder(key, model=settings.openai_embedding_model)
+        embedder = CachedEmbedder(OpenAIEmbedder(key, model=settings.openai_embedding_model))
 
     provider: SchemaProvider
     if settings.offline_db:
@@ -80,7 +81,9 @@ def build_components(
         db_mode = "fixture"
     else:
         dsn = settings.database_url or ""
-        provider = PostgresSchemaProvider(dsn, sensitive_tables=sensitive)
+        provider = PostgresSchemaProvider(
+            dsn, sensitive_tables=sensitive, sample_rows=settings.sample_rows_per_table
+        )
         if executor is None:
             executor = PostgresExecutor(dsn, statement_timeout_ms=settings.statement_timeout_ms)
         db_mode = "postgres"
@@ -97,6 +100,8 @@ def build_components(
         token_budget=settings.schema_token_budget,
         default_limit=settings.default_row_limit,
         max_corrections=settings.max_correction_rounds,
+        prompt_mode=settings.prompt_mode,
+        summarize=settings.summarize_results,
     )
     return Components(
         pipeline=pipeline,

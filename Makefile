@@ -1,7 +1,7 @@
 VENV := .venv
 PYTHON := $(VENV)/bin/python
 
-.PHONY: install lint type test check demo run ui eval eval-oracle db-up db-local db-down
+.PHONY: install lint type test check demo run ui eval eval-oracle ablation db-up db-local db-down
 
 install:
 	uv venv --python 3.12 $(VENV)
@@ -35,6 +35,15 @@ eval-oracle:
 
 db-local:
 	./scripts/setup_local_postgres.sh
+
+RESULTS := evaluation/results
+
+ablation:
+	$(PYTHON) -m evaluation.run --prompt-mode baseline --max-corrections 0 --out $(RESULTS)/baseline_c0.json
+	$(PYTHON) -m evaluation.run --prompt-mode baseline --max-corrections 2 --out $(RESULTS)/baseline_c2.json
+	$(PYTHON) -m evaluation.run --prompt-mode schema_aware --max-corrections 0 --out $(RESULTS)/aware_c0.json
+	$(PYTHON) -m evaluation.run --prompt-mode schema_aware --max-corrections 2 --out $(RESULTS)/aware_c2.json
+	$(PYTHON) -m evaluation.compare $(RESULTS)/baseline_c0.json $(RESULTS)/aware_c0.json $(RESULTS)/baseline_c2.json $(RESULTS)/aware_c2.json
 
 db-up:
 	docker compose up -d postgres

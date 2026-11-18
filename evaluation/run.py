@@ -4,6 +4,11 @@
     python -m evaluation.run --oracle        # dataset/pipeline sanity check, NOT a model evaluation
     python -m evaluation.run --limit 10      # first N questions only
 
+Ablation flags (same dataset, same model, one variable changed per arm):
+    --prompt-mode {schema_aware,baseline}   baseline = bare table names, no exemplars
+    --max-corrections N                     0 disables the self-correction loop
+    --out PATH                              where to write the per-question JSON
+
 Dataset: evaluation/questions.jsonl (answerable questions carry a gold SQL;
 other categories are unsafe requests, nonexistent columns/tables, and
 ambiguous input). Nothing here is hardcoded to make numbers look good: with a
@@ -16,6 +21,8 @@ Metric definitions (answerable questions unless noted):
                          column names ignored)
   correction success     of questions whose first attempt failed, share that ended ok
   unsafe rejection       unsafe requests whose final status != ok (nothing executed)
+  hallucination rate     first-attempt SQL referenced a table/column absent from the
+                         schema (static sqlglot check, evaluation/hallucination.py)
   data unchanged         row counts of every table identical before and after the run
 """
 
@@ -28,13 +35,14 @@ import sys
 import tempfile
 from collections import Counter
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
 import psycopg
 
+from evaluation.hallucination import find_hallucinations
 from text_to_sql_engine.config import Settings
 from text_to_sql_engine.container import build_components
 from text_to_sql_engine.execution.executor import ExecutionError, PostgresExecutor
@@ -76,6 +84,8 @@ class Row:
     accurate: bool | None
     sql: str | None
     error: str | None
+    first_attempt_sql: str | None = None
+    hallucinations: list[str] = field(default_factory=list)
     note: str = ""
     corrections: list[str] = field(default_factory=list)
 
@@ -122,6 +132,12 @@ def _first_attempt_valid(result: QueryResult) -> bool:
     )
 
 
+def _first_attempt_sql(result: QueryResult) -> str | None:
+    """The SQL the model produced on attempt 1 (the final SQL if it needed no correction)."""
+    first = [c for c in result.corrections if c.attempt == 1]
+    return first[0].sql if first else result.sql
+
+
 def _pct(num: int, den: int) -> str:
     return f"{num}/{den} = {100 * num / den:.1f}%" if den else "n/a (0 cases)"
 
@@ -132,6 +148,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--oracle", action="store_true", help="use reference SQL instead of an LLM")
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--prompt-mode", choices=["schema_aware", "baseline"], default=None)
+    parser.add_argument("--max-corrections", type=int, default=None)
+    parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
 
     settings = Settings()
@@ -148,9 +167,15 @@ def main(argv: list[str] | None = None) -> int:
     if args.limit:
         questions = questions[: args.limit]
 
-    settings = settings.model_copy(
-        update={"history_db_path": str(Path(tempfile.mkdtemp()) / "eval-history.sqlite")}
-    )
+    overrides: dict[str, Any] = {
+        "history_db_path": str(Path(tempfile.mkdtemp()) / "eval-history.sqlite"),
+        "summarize_results": False,
+    }
+    if args.prompt_mode:
+        overrides["prompt_mode"] = args.prompt_mode
+    if args.max_corrections is not None:
+        overrides["max_correction_rounds"] = args.max_corrections
+    settings = settings.model_copy(update=overrides)
     llm = None
     if args.oracle:
         sql_by_q = {q["question"]: q.get("gold_sql") or q.get("oracle_sql") for q in questions}
@@ -164,15 +189,25 @@ def main(argv: list[str] | None = None) -> int:
     mode = "ORACLE SANITY CHECK (reference SQL, not a model)" if args.oracle else (
         f"LIVE provider={settings.active_provider} model={settings.llm_model_name}{endpoint}")
     print(f"Mode: {mode} | database: postgres | questions: {len(questions)}")
+    print(f"Config: prompt_mode={settings.prompt_mode} "
+          f"max_corrections={settings.max_correction_rounds} "
+          f"sample_rows={settings.sample_rows_per_table}")
+    schema = components.schema_cache.get()
     before = _table_counts(settings.database_url)
 
     rows: list[Row] = []
+    incomplete = False
     for q in questions:
         if args.oracle and q["category"] == "ambiguous":
             rows.append(Row(q["id"], q["category"], q["question"], "skipped", 0, False, None,
                             None, None, None, note="no reference SQL in oracle mode"))
             continue
-        result = components.pipeline.answer(q["question"])
+        try:
+            result = components.pipeline.answer(q["question"])
+        except Exception as error:  # provider quota/outage: keep what was measured so far
+            print(f"  !! aborting at #{q['id']}: {type(error).__name__}: {str(error)[:120]}")
+            incomplete = True
+            break
         ok = result.status is QueryStatus.OK
         accurate: bool | None = None
         if q["category"] == "answerable":
@@ -184,11 +219,16 @@ def main(argv: list[str] | None = None) -> int:
                 except ExecutionError as error:
                     print(f"  !! gold SQL failed for #{q['id']}: {error.message}")
         first_valid = _first_attempt_valid(result)
+        first_sql = _first_attempt_sql(result)
+        found = find_hallucinations(first_sql, schema)
         needed_correction = bool(result.corrections)
         rows.append(Row(
             q["id"], q["category"], q["question"], result.status.value, result.attempts,
             first_valid, (ok if needed_correction else None), accurate, result.sql, result.error,
             corrections=[f"{c.stage}: {c.error}" for c in result.corrections],
+            first_attempt_sql=first_sql,
+            hallucinations=[f"table:{t}" for t in found.tables]
+            + [f"column:{c}" for c in found.columns],
         ))
         mark = "ok " if ok else result.status.value[:3]
         print(f"  #{q['id']:>2} [{q['category'][:5]}] {mark} a={result.attempts} "
@@ -207,6 +247,8 @@ def main(argv: list[str] | None = None) -> int:
         ("answerable questions", str(len(ans))),
         ("valid SQL rate (1st try)", _pct(sum(r.first_attempt_valid for r in ans), len(ans))),
         ("execution success rate", _pct(sum(r.status == "ok" for r in ans), len(ans))),
+        ("hallucination rate (1st try)",
+         _pct(sum(bool(r.hallucinations) for r in ans), len(ans))),
         ("execution accuracy vs gold", _pct(sum(bool(r.accurate) for r in ans), len(ans))),
         ("correction success rate",
          _pct(sum(bool(r.corrected_ok) for r in corrected), len(corrected))
@@ -223,9 +265,36 @@ def main(argv: list[str] | None = None) -> int:
         print("\nORACLE MODE validates the dataset and pipeline plumbing only. "
               "These numbers are NOT a measure of LLM quality.")
 
-    ARTIFACTS.mkdir(exist_ok=True)
-    out = ARTIFACTS / ("eval_oracle.json" if args.oracle else "eval_live.json")
-    payload = {"mode": mode, "rows": [asdict(r) for r in rows]}
+    out = args.out or ARTIFACTS / ("eval_oracle.json" if args.oracle else "eval_live.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    n = len(ans)
+    metrics = {
+        "answerable": n,
+        "valid_sql_first_try": sum(r.first_attempt_valid for r in ans),
+        "execution_success": sum(r.status == "ok" for r in ans),
+        "execution_accuracy": sum(bool(r.accurate) for r in ans),
+        "hallucinated_first_try": sum(bool(r.hallucinations) for r in ans),
+        "needed_correction": len(corrected),
+        "corrected_ok": sum(bool(r.corrected_ok) for r in corrected),
+        "unsafe_rejected": rejected,
+        "unsafe_total": len(unsafe),
+    }
+    config = {
+        "provider": settings.active_provider,
+        "model": settings.llm_model_name,
+        "prompt_mode": settings.prompt_mode,
+        "max_corrections": settings.max_correction_rounds,
+        "sample_rows": settings.sample_rows_per_table,
+        "questions": len(questions),
+        "incomplete": incomplete,
+        "date": datetime.now(UTC).isoformat(timespec="seconds"),
+    }
+    payload = {
+        "mode": mode,
+        "config": config,
+        "metrics": metrics,
+        "rows": [asdict(r) for r in rows],
+    }
     out.write_text(json.dumps(payload, indent=2, default=str))
     print(f"\nPer-question results: {out}")
     return 0 if before == after else 1

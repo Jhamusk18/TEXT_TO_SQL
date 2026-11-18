@@ -24,7 +24,10 @@ class Settings(BaseSettings):
     default_row_limit: int = Field(default=200, ge=1)
     max_correction_rounds: int = Field(default=2, ge=0)
     statement_timeout_ms: int = Field(default=5000, ge=100)
-    schema_token_budget: int = Field(default=1200, ge=100)
+    schema_token_budget: int = Field(default=2000, ge=100)
+    sample_rows_per_table: int = Field(default=3, ge=0, le=10)
+    prompt_mode: Literal["schema_aware", "baseline"] = "schema_aware"
+    summarize_results: bool = True
     sensitive_tables: str = "customers"
     history_db_path: str = "artifacts/history.sqlite"
 

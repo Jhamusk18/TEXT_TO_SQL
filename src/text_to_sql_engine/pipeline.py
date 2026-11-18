@@ -12,10 +12,10 @@ from text_to_sql_engine.guardrails.base import GuardrailContext, GuardrailPipeli
 from text_to_sql_engine.guardrails.rules import default_rules
 from text_to_sql_engine.history import HistoryStore
 from text_to_sql_engine.llm.base import LLMProvider
-from text_to_sql_engine.models import QueryResult, QueryStatus
+from text_to_sql_engine.models import Exemplar, QueryResult, QueryStatus
 from text_to_sql_engine.prompts import PromptBuilder
 from text_to_sql_engine.schema.cache import SchemaCache
-from text_to_sql_engine.schema.cards import select_cards
+from text_to_sql_engine.schema.cards import build_name_only_card, select_cards
 
 
 class TextToSqlPipeline:
@@ -39,6 +39,8 @@ class TextToSqlPipeline:
         default_limit: int = 200,
         max_corrections: int = 2,
         dialect: str = "postgres",
+        prompt_mode: str = "schema_aware",
+        summarize: bool = True,
     ) -> None:
         self._schema_cache = schema_cache
         self._embedder = embedder
@@ -50,13 +52,20 @@ class TextToSqlPipeline:
         self._default_limit = default_limit
         self._max_corrections = max_corrections
         self._dialect = dialect
+        self._prompt_mode = prompt_mode
+        self._summarize_enabled = summarize
         self._prompts = PromptBuilder(dialect=dialect)
 
     def answer(self, question: str) -> QueryResult:
         started = time.perf_counter()
         schema = self._schema_cache.get()
-        cards = select_cards(question, schema, self._embedder, self._token_budget)
-        exemplars = self._fewshot.top_k(question, k=3)
+        if self._prompt_mode == "baseline":
+            # Ablation baseline: bare table names, no retrieval, no exemplars.
+            cards = [build_name_only_card(table) for table in schema.tables]
+            exemplars: list[Exemplar] = []
+        else:
+            cards = select_cards(question, schema, self._embedder, self._token_budget)
+            exemplars = self._fewshot.top_k(question, k=3)
         prompt = self._prompts.initial(question, cards, exemplars)
         guardrails = GuardrailPipeline(
             default_rules(),
@@ -74,7 +83,8 @@ class TextToSqlPipeline:
         columns: list[str] = []
         rows: list[dict[str, object]] = []
         if outcome.status is QueryStatus.OK and outcome.result is not None:
-            summary = self._summarize(question, outcome.result)
+            if self._summarize_enabled:
+                summary = self._summarize(question, outcome.result)
             columns = outcome.result.columns
             rows = outcome.result.rows
         result = QueryResult(

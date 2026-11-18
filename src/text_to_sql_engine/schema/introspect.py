@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import LiteralString
 
 import psycopg
+from psycopg import sql
 from psycopg.rows import tuple_row
 
 from text_to_sql_engine.models import ColumnInfo, DatabaseSchema, ForeignKey, TableInfo
@@ -64,9 +65,15 @@ class PostgresSchemaProvider:
     supplied by configuration (SENSITIVE_TABLES) and stamped on here.
     """
 
-    def __init__(self, dsn: str, sensitive_tables: set[str] | None = None) -> None:
+    def __init__(
+        self,
+        dsn: str,
+        sensitive_tables: set[str] | None = None,
+        sample_rows: int = 0,
+    ) -> None:
         self._dsn = dsn
         self._sensitive = sensitive_tables or set()
+        self._sample_rows = sample_rows
 
     def load(self) -> DatabaseSchema:
         with psycopg.connect(self._dsn, connect_timeout=5) as conn:
@@ -80,6 +87,11 @@ class PostgresSchemaProvider:
                 pk_rows = cur.fetchall()
                 cur.execute(_FOREIGN_KEYS_SQL)
                 fk_rows = cur.fetchall()
+                samples = {
+                    name: self._fetch_samples(cur, name)
+                    for name, _comment in table_rows
+                    if self._sample_rows > 0 and name not in self._sensitive
+                }
 
         primary_keys = {(table, column) for table, column in pk_rows}
         columns_by_table: dict[str, list[ColumnInfo]] = {}
@@ -105,7 +117,31 @@ class PostgresSchemaProvider:
                 columns=columns_by_table.get(name, []),
                 foreign_keys=fks_by_table.get(name, []),
                 sensitive=name in self._sensitive,
+                sample_rows=samples.get(name, []),
             )
             for name, comment in table_rows
         ]
         return DatabaseSchema(tables=tables)
+
+    def _fetch_samples(
+        self, cur: psycopg.Cursor[tuple[object, ...]], table: str
+    ) -> list[dict[str, str]]:
+        """First few rows of a non-sensitive table, values stringified and truncated.
+
+        Sensitive tables are never sampled: sample rows go into the LLM prompt,
+        so they would leak PII to the model provider.
+        """
+        query = sql.SQL("SELECT * FROM {} LIMIT {}").format(
+            sql.Identifier(table), sql.Literal(self._sample_rows)
+        )
+        cur.execute(query)
+        names = [column.name for column in cur.description or []]
+        return [
+            {name: _clip(value) for name, value in zip(names, row, strict=True)}
+            for row in cur.fetchall()
+        ]
+
+
+def _clip(value: object, limit: int = 40) -> str:
+    text = "NULL" if value is None else str(value)
+    return text if len(text) <= limit else text[: limit - 1] + "…"

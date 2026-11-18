@@ -53,7 +53,15 @@ def build_card(table: TableInfo) -> SchemaCard:
         if column.comment:
             line += f" -- {column.comment}"
         lines.append(line)
+    for row in table.sample_rows:
+        lines.append("  sample: " + ", ".join(f"{name}={value}" for name, value in row.items()))
     text = "\n".join(lines)
+    return SchemaCard(table=table.name, text=text, tokens=estimate_tokens(text))
+
+
+def build_name_only_card(table: TableInfo) -> SchemaCard:
+    """Baseline card: the table name and nothing else (no columns, types, keys, samples)."""
+    text = f"table {table.name}"
     return SchemaCard(table=table.name, text=text, tokens=estimate_tokens(text))
 
 

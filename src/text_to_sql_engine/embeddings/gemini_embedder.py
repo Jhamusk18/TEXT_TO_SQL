@@ -24,11 +24,14 @@ class GeminiEmbedder:
     ) -> None:
         self._client: Any = client or build_client(api_key)
         self._model = model
+        # gemini-embedding-2 is multimodal and fuses a list of contents into ONE
+        # embedding, so it must be called once per text.
+        self._batch = 1 if model.startswith("gemini-embedding-2") else MAX_BATCH
 
     def embed(self, texts: Sequence[str]) -> list[list[float]]:
         vectors: list[list[float]] = []
-        for start in range(0, len(texts), MAX_BATCH):
-            batch = list(texts[start : start + MAX_BATCH])
+        for start in range(0, len(texts), self._batch):
+            batch = list(texts[start : start + self._batch])
             response = self._client.models.embed_content(
                 model=self._model,
                 contents=batch,
