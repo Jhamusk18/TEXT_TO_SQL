@@ -58,7 +58,8 @@ def render_mode_banner(health: dict[str, str]) -> bool:
         st.warning(
             "**Demo mode: FakeLLM.** SQL comes from a small table of predefined templates, "
             "so only the bundled questions below work. This is not general-purpose "
-            "NL-to-SQL. Set `GEMINI_API_KEY` (or `OPENAI_API_KEY`) and restart the backend to use a real model. "
+            "NL-to-SQL. Set `GEMINI_API_KEY` (or `OPENAI_API_KEY`) and restart the backend "
+            "to use a real model. "
             f"Database: {database}."
         )
     else:
