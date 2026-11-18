@@ -58,6 +58,18 @@ def test_sensitive_star_question_is_rejected_end_to_end(tmp_path: Path) -> None:
     assert all(round_.stage == "guardrail" for round_ in result.corrections)
 
 
+def test_fake_llm_does_not_fake_success_for_unsupported_questions(tmp_path: Path) -> None:
+    executor = FakeExecutor()
+    components = build_components(
+        _settings(tmp_path), executor=executor, history=InMemoryHistoryStore()
+    )
+    result = components.pipeline.answer("What is the total revenue by month?")
+
+    assert result.status is QueryStatus.REJECTED
+    assert result.error is not None and "OPENAI_API_KEY" in result.error
+    assert executor.executed == []
+
+
 def test_history_records_both_outcomes(tmp_path: Path) -> None:
     history = InMemoryHistoryStore()
     components = build_components(
