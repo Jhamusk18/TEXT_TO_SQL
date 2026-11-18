@@ -204,6 +204,25 @@ A question is embedded and used to rank per-table schema cards (introspected fro
 - The Docker path (`make db-up`) and the real Gemini and OpenAI paths were not run in the development environment (no Docker, no API key). The same PostgreSQL steps were run via apt on Ubuntu 24.04 and `scripts/setup_local_postgres.sh` was re-run against an existing install.
 - Ideas: execution-based self-consistency, per-column value sampling in the cards, a larger evaluation set, and streaming responses.
 
+## Deploy on Streamlit Community Cloud (free)
+
+The Streamlit app can run the whole pipeline in-process (`T2S_EMBEDDED=1`), so no FastAPI
+backend is needed. It still needs a PostgreSQL database and one LLM key.
+
+1. **Database (free):** create a project at neon.tech (or any hosted PostgreSQL), copy its
+   connection string, then load the demo data once from your machine:
+   `DATABASE_URL="postgresql://...?sslmode=require" python scripts/seed_database.py`
+2. **App:** at share.streamlit.io choose *Create app*, then this repository, branch `main`,
+   main file `ui/app.py`, and Python 3.12 under *Advanced settings*.
+3. **Secrets:** paste `.streamlit/secrets.toml.example` into the app's *Secrets* box and fill
+   in `DATABASE_URL` and a Groq (or Gemini) key. Never commit real keys; `.streamlit/secrets.toml`
+   is git-ignored.
+4. Deploy. The banner should read "Live mode: Groq ..." and "Database: PostgreSQL".
+
+Safety on a public demo: every query is validated (SELECT only, known tables, sensitive
+`customers` columns protected) and runs in a read-only transaction with a timeout. For extra
+protection, give the app a PostgreSQL role with `SELECT` only.
+
 ## Configuration
 
 Copy `.env.example` to `.env` and adjust. Every variable is optional — with none set, the engine runs fully offline on fakes and fixtures.
