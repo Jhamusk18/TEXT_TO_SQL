@@ -13,6 +13,7 @@ from text_to_sql_engine.config import Settings
 from text_to_sql_engine.demo_data import DEMO_SQL_TEMPLATES, FAKE_LLM_NO_TEMPLATE_SQL
 from text_to_sql_engine.embeddings.base import Embedder
 from text_to_sql_engine.embeddings.fake import FakeEmbedder
+from text_to_sql_engine.embeddings.gemini_embedder import GeminiEmbedder
 from text_to_sql_engine.embeddings.openai_embedder import OpenAIEmbedder
 from text_to_sql_engine.execution.executor import FakeExecutor, PostgresExecutor, QueryExecutor
 from text_to_sql_engine.fewshot.exemplars import DEMO_EXEMPLARS
@@ -20,6 +21,7 @@ from text_to_sql_engine.fewshot.store import FewShotStore
 from text_to_sql_engine.history import HistoryStore, SqliteHistoryStore
 from text_to_sql_engine.llm.base import LLMProvider
 from text_to_sql_engine.llm.fake import FakeLLM
+from text_to_sql_engine.llm.gemini_provider import GeminiProvider
 from text_to_sql_engine.llm.openai_provider import OpenAIProvider
 from text_to_sql_engine.pipeline import TextToSqlPipeline
 from text_to_sql_engine.schema.cache import SchemaCache, SchemaProvider, StaticSchemaProvider
@@ -36,6 +38,7 @@ class Components:
     history: HistoryStore
     llm_mode: str
     db_mode: str
+    llm_model: str | None = None
 
 
 def build_components(
@@ -51,20 +54,23 @@ def build_components(
     sensitive = settings.sensitive_table_set()
 
     embedder: Embedder
-    if settings.offline_llm:
+    llm_mode = settings.active_provider
+    if llm_mode == "fake":
         if llm is None:
             llm = FakeLLM(
                 sql_templates=DEMO_SQL_TEMPLATES, default=FAKE_LLM_NO_TEMPLATE_SQL
             )
         embedder = FakeEmbedder()
-        llm_mode = "fake"
-    else:
+    elif llm_mode == "gemini":
+        key = settings.gemini_api_key or ""
         if llm is None:
-            llm = OpenAIProvider(settings.openai_api_key or "", model=settings.openai_model)
-        embedder = OpenAIEmbedder(
-            settings.openai_api_key or "", model=settings.openai_embedding_model
-        )
-        llm_mode = "openai"
+            llm = GeminiProvider(key, model=settings.gemini_model)
+        embedder = GeminiEmbedder(key, model=settings.gemini_embedding_model)
+    else:
+        key = settings.openai_api_key or ""
+        if llm is None:
+            llm = OpenAIProvider(key, model=settings.openai_model)
+        embedder = OpenAIEmbedder(key, model=settings.openai_embedding_model)
 
     provider: SchemaProvider
     if settings.offline_db:
@@ -98,4 +104,5 @@ def build_components(
         history=history,
         llm_mode=llm_mode,
         db_mode=db_mode,
+        llm_model=settings.llm_model_name,
     )

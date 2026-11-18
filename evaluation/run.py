@@ -1,6 +1,6 @@
 """Evaluation harness for the text-to-sql pipeline.
 
-    python -m evaluation.run                 # real LLM + PostgreSQL (OPENAI_API_KEY, DATABASE_URL)
+    python -m evaluation.run                 # real LLM + PostgreSQL (GEMINI_API_KEY or OPENAI_API_KEY, DATABASE_URL)
     python -m evaluation.run --oracle        # dataset/pipeline sanity check, NOT a model evaluation
     python -m evaluation.run --limit 10      # first N questions only
 
@@ -139,8 +139,9 @@ def main(argv: list[str] | None = None) -> int:
         print("DATABASE_URL is required (the dataset is defined against the PostgreSQL seed).")
         return 2
     if not args.oracle and settings.offline_llm:
-        print("OPENAI_API_KEY is not set. Refusing to score the FakeLLM as if it were a model.\n"
-              "Set OPENAI_API_KEY, or run with --oracle for a dataset/pipeline sanity check.")
+        print("No LLM API key is set. Refusing to score the FakeLLM as if it were a model.\n"
+              "Set GEMINI_API_KEY (or OPENAI_API_KEY), or run with --oracle for a "
+              "dataset/pipeline sanity check.")
         return 2
 
     questions = [json.loads(line) for line in DATASET.read_text().splitlines() if line.strip()]
@@ -154,14 +155,14 @@ def main(argv: list[str] | None = None) -> int:
     if args.oracle:
         sql_by_q = {q["question"]: q.get("gold_sql") or q.get("oracle_sql") for q in questions}
         llm = OracleLLM({k: v for k, v in sql_by_q.items() if v})
-        settings = settings.model_copy(update={"openai_api_key": None})
+        settings = settings.model_copy(update={"openai_api_key": None, "gemini_api_key": None})
     components = build_components(settings, llm=llm)
     gold_executor = PostgresExecutor(settings.database_url, statement_timeout_ms=10000)
 
     base_url = os.environ.get("OPENAI_BASE_URL")
     endpoint = f" endpoint={base_url}" if base_url else ""
     mode = "ORACLE SANITY CHECK (reference SQL, not a model)" if args.oracle else (
-        f"LIVE model={settings.openai_model}{endpoint}")
+        f"LIVE provider={settings.active_provider} model={settings.llm_model_name}{endpoint}")
     print(f"Mode: {mode} | database: postgres | questions: {len(questions)}")
     before = _table_counts(settings.database_url)
 

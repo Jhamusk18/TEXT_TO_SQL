@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from text_to_sql_engine.embeddings.fake import FakeEmbedder
@@ -10,6 +12,12 @@ from text_to_sql_engine.guardrails.rules import default_rules
 from text_to_sql_engine.models import DatabaseSchema
 from text_to_sql_engine.prompts import PromptBuilder
 from text_to_sql_engine.schema.fixtures import DEMO_SCHEMA
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Runs before test modules are imported (``api`` builds an app at import time)."""
+    for name in ("GEMINI_API_KEY", "OPENAI_API_KEY", "LLM_PROVIDER", "DATABASE_URL"):
+        os.environ.pop(name, None)
 
 
 @pytest.fixture

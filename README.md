@@ -34,7 +34,7 @@ flowchart LR
         CARDS --> PB[Prompt builder]
         FS[Few-shot store<br>top-3 exemplars] --> PB
     end
-    PB --> LLM[LLM provider<br>OpenAI or FakeLLM]
+    PB --> LLM[LLM provider<br>Gemini, OpenAI, or FakeLLM]
     LLM --> GR{Guardrail pipeline<br>sqlglot AST rules}
     GR -- "violation + SQL" --> LLM
     GR -- validated SQL --> EXP{EXPLAIN preflight}
@@ -58,7 +58,7 @@ The back edges into the LLM are the correction loop — each carries the failing
 | psycopg 3 | PostgreSQL driver | First-class read-only transactions, SQLSTATE surfaces, connection options for `statement_timeout` |
 | PostgreSQL 16 | Demo database | Realistic e-commerce schema with comments and FKs to introspect |
 | SQLite (stdlib) | Query history | Durable persistence with zero extra dependencies |
-| uv + ruff + mypy + pytest | Toolchain | Fast installs, strict lint/type gates, 127 offline tests |
+| uv + ruff + mypy + pytest | Toolchain | Fast installs, strict lint/type gates, 141 offline tests |
 
 ## Quickstart
 
@@ -70,7 +70,7 @@ cd text-to-sql-engine
 
 make install   # uv venv + editable install with dev extras
 make demo      # fully offline: fixture schema, FakeLLM, real guardrails
-make test      # 127 tests — no network, no DB, no keys
+make test      # 141 tests — no network, no DB, no keys
 ```
 
 To run against a live PostgreSQL with the bundled e-commerce schema and seed:
@@ -82,7 +82,7 @@ DATABASE_URL=postgresql://t2s:t2s@localhost:5432/shop make demo
 
 The demo asks the same bundled questions either way — the offline fixture rows were computed from the same seed data by `scripts/generate_seed.py`, so both modes print the same numbers.
 
-To serve the API (offline by default; set `DATABASE_URL` / `OPENAI_API_KEY` to go live):
+To serve the API (offline by default; set `DATABASE_URL` and `GEMINI_API_KEY` (or `OPENAI_API_KEY`) to go live):
 
 ```bash
 make run       # uvicorn on 127.0.0.1:8000
@@ -100,7 +100,7 @@ Requires Python 3.12 and [uv](https://docs.astral.sh/uv/) (`pip install --user u
 
 ```bash
 make install            # venv + dependencies, including the Streamlit UI extra
-cp .env.example .env    # optional: add OPENAI_API_KEY and DATABASE_URL
+cp .env.example .env    # optional: add GEMINI_API_KEY (free tier) and DATABASE_URL
 
 # PostgreSQL, pick one:
 make db-up              # Docker (docker compose)
@@ -116,9 +116,9 @@ With no `.env`, the backend still starts: fake LLM, fixture schema, fixture rows
 
 ### Fake mode vs live mode
 
-| | Fake mode (no `OPENAI_API_KEY`) | Live mode |
+| | Fake mode (no API key) | Live mode |
 |---|---|---|
-| SQL source | A fixed table of templates in `demo_data.py`, matched by question substring | OpenAI model, prompted with ranked schema cards and few-shot examples |
+| SQL source | A fixed table of templates in `demo_data.py`, matched by question substring | Gemini (default `gemini-3.5-flash-lite`) or OpenAI, prompted with ranked schema cards and few-shot examples |
 | Questions answered | Only the 5 bundled questions (plus one guardrail-rejection example). Anything else is rejected with an explicit "FakeLLM has no template" error | Free-form questions about the connected schema |
 | Validation, EXPLAIN, read-only execution, correction loop | Real | Real |
 | Database | Real PostgreSQL if `DATABASE_URL` is set, otherwise fixture rows | Real PostgreSQL |
@@ -151,7 +151,7 @@ Note on this seed data: no customer has more than 3 orders and every product has
 
 ```bash
 make eval-oracle    # sanity check of dataset + pipeline using the gold SQL, no LLM
-make eval           # real model: needs OPENAI_API_KEY and DATABASE_URL
+make eval           # real model: needs GEMINI_API_KEY (or OPENAI_API_KEY) and DATABASE_URL
 ```
 
 `make eval` refuses to run on the FakeLLM. Metrics: first-attempt valid SQL rate (passes guardrails and EXPLAIN), execution success rate, execution accuracy against the gold SQL's rows, correction success rate (of questions whose first attempt failed), unsafe rejection rate, and a before/after row-count check that no table changed. Per-question results are written to `artifacts/`.
@@ -159,7 +159,7 @@ make eval           # real model: needs OPENAI_API_KEY and DATABASE_URL
 What has been measured so far:
 
 - `make eval-oracle` on PostgreSQL: 43/43 gold queries pass validation and execute and match themselves, 6/6 unsafe statements are rejected, and no table row count changed. This validates the dataset and the guardrails. It says nothing about model quality, because the "model" is the answer key.
-- No live-model numbers exist yet. The OpenAI code path was exercised end to end only against a scripted local stub that speaks the OpenAI HTTP API (wiring check). Run `make eval` with a real key and report those numbers as they come out.
+- No live-model numbers are recorded in this repository. The Gemini and OpenAI adapters are unit-tested with stub clients only. Run `make eval` with a real key and report the numbers it prints.
 
 ### Architecture in one paragraph
 
@@ -172,7 +172,7 @@ A question is embedded and used to rank per-table schema cards (introspected fro
 - The few-shot exemplars are written for the demo schema and need to be replaced for another database.
 - The result summary is a one-sentence LLM paraphrase of metadata and the first row, not an analysis.
 - No authentication, rate limiting, or conversation memory; each question is independent.
-- The Docker path (`make db-up`) and the real OpenAI path were not run in the development environment (no Docker, no API key). The same PostgreSQL steps were run via apt on Ubuntu 24.04 and `scripts/setup_local_postgres.sh` was re-run against an existing install.
+- The Docker path (`make db-up`) and the real Gemini and OpenAI paths were not run in the development environment (no Docker, no API key). The same PostgreSQL steps were run via apt on Ubuntu 24.04 and `scripts/setup_local_postgres.sh` was re-run against an existing install.
 - Ideas: execution-based self-consistency, per-column value sampling in the cards, a larger evaluation set, and streaming responses.
 
 ## Configuration
@@ -182,7 +182,11 @@ Copy `.env.example` to `.env` and adjust. Every variable is optional — with no
 | Variable | Default | Purpose |
 |---|---|---|
 | `DATABASE_URL` | *(unset → fixtures)* | PostgreSQL DSN for introspection and execution |
-| `OPENAI_API_KEY` | *(unset → FakeLLM)* | Enables the OpenAI provider and embedder |
+| `LLM_PROVIDER` | `auto` | `auto` (Gemini if its key is set, else OpenAI, else fake), `gemini`, or `openai` |
+| `GEMINI_API_KEY` | *(unset)* | Enables the Gemini provider and embedder (free tier available) |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Chat model for generation, correction, summaries |
+| `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-001` | Embeddings for schema-card and few-shot retrieval |
+| `OPENAI_API_KEY` | *(unset)* | Enables the OpenAI provider and embedder |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Chat model for generation, correction, summaries |
 | `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | Embeddings for schema-card and few-shot retrieval |
 | `DEFAULT_ROW_LIMIT` | `200` | `LIMIT` injected when the model forgot one |
@@ -352,7 +356,7 @@ class LLMProvider(Protocol):
         ...
 ```
 
-Same pattern for `Embedder`, `QueryExecutor`, `SchemaProvider`, and `HistoryStore` — each protocol has a real implementation (OpenAI, psycopg, `pg_catalog` introspection, SQLite) and a deterministic fake (`FakeLLM` with scripted responses and question-template matching, `FakeEmbedder` hashing words into a normalized vector, `FakeExecutor` with scriptable failure sequences, a fixture schema mirroring the docker-compose database). Wiring happens in exactly one place (`container.py`): no API key means fakes, no `DATABASE_URL` means fixtures — the rest of the codebase never reads the environment. The payoff: the *entire* behavior surface, including the correction loop's failure choreography and the demo itself, is exercised by fast, fully offline tests, and CI needs no secrets and no services.
+Same pattern for `Embedder`, `QueryExecutor`, `SchemaProvider`, and `HistoryStore` — each protocol has a real implementation (Gemini/OpenAI, psycopg, `pg_catalog` introspection, SQLite) and a deterministic fake (`FakeLLM` with scripted responses and question-template matching, `FakeEmbedder` hashing words into a normalized vector, `FakeExecutor` with scriptable failure sequences, a fixture schema mirroring the docker-compose database). Wiring happens in exactly one place (`container.py`): no API key means fakes, no `DATABASE_URL` means fixtures — the rest of the codebase never reads the environment. The payoff: the *entire* behavior surface, including the correction loop's failure choreography and the demo itself, is exercised by fast, fully offline tests, and CI needs no secrets and no services.
 
 ## Project structure
 
@@ -363,8 +367,8 @@ text-to-sql-engine/
 │   │                      #   sensitive-star, qualify-columns, limit-inject
 │   ├── schema/            # pg_catalog introspection, schema cards, cache, fixtures
 │   ├── fewshot/           # exemplar store + 15 bundled (question, SQL) pairs
-│   ├── llm/               # LLMProvider protocol, OpenAI adapter, FakeLLM
-│   ├── embeddings/        # Embedder protocol, OpenAI adapter, FakeEmbedder
+│   ├── llm/               # LLMProvider protocol, Gemini + OpenAI adapters, FakeLLM
+│   ├── embeddings/        # Embedder protocol, Gemini + OpenAI adapters, FakeEmbedder
 │   ├── execution/         # executors (Postgres/fake) + SQLSTATE classification
 │   ├── correction.py      # the self-correction loop state machine
 │   ├── pipeline.py        # end-to-end orchestration
@@ -373,7 +377,7 @@ text-to-sql-engine/
 │   └── demo.py            # offline-first demo
 ├── db/init/               # e-commerce schema + generated deterministic seed
 ├── scripts/               # seed generator (also prints the expected answers)
-├── tests/                 # 127 offline tests
+├── tests/                 # 141 offline tests
 ├── docker-compose.yml     # postgres:16 with schema + seed auto-applied
 └── Makefile               # install / lint / type / test / demo / run / db-up
 ```
@@ -384,7 +388,7 @@ text-to-sql-engine/
 make check   # ruff + mypy (strict) + pytest
 ```
 
-127 tests run in under a second, entirely offline — no network, no database, no API keys, no model downloads. Coverage by area:
+141 tests run in under a second, entirely offline — no network, no database, no API keys, no model downloads. Coverage by area:
 
 - **Guardrails** — every rule individually and through the pipeline: rejects UPDATE/DELETE/INSERT/DDL, DML inside CTEs, `SELECT ... INTO`, row locks, multi-statements, and unknown tables (including inside subqueries); strips comments; injects and preserves LIMITs; denies sensitive stars while expanding safe ones; fully qualifies columns and rejects unknown or ambiguous ones.
 - **Correction loop** — scripted fail-then-succeed at the guardrail, EXPLAIN, and execute stages; budget exhaustion; zero-budget; immediate stop on non-retryable categories.
