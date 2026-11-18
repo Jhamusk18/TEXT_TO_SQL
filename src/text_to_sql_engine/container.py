@@ -23,6 +23,7 @@ from text_to_sql_engine.history import HistoryStore, SqliteHistoryStore
 from text_to_sql_engine.llm.base import LLMProvider
 from text_to_sql_engine.llm.fake import FakeLLM
 from text_to_sql_engine.llm.gemini_provider import GeminiProvider
+from text_to_sql_engine.llm.groq_provider import GroqProvider
 from text_to_sql_engine.llm.openai_provider import OpenAIProvider
 from text_to_sql_engine.pipeline import TextToSqlPipeline
 from text_to_sql_engine.schema.cache import SchemaCache, SchemaProvider, StaticSchemaProvider
@@ -67,6 +68,10 @@ def build_components(
         if llm is None:
             llm = GeminiProvider(key, model=settings.gemini_model)
         embedder = CachedEmbedder(GeminiEmbedder(key, model=settings.gemini_embedding_model))
+    elif llm_mode == "groq":
+        if llm is None:
+            llm = GroqProvider(settings.groq_api_key or "", model=settings.groq_model)
+        embedder = CachedEmbedder(FakeEmbedder())  # Groq has no embeddings API
     else:
         key = settings.openai_api_key or ""
         if llm is None:

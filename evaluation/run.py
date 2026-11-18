@@ -159,7 +159,7 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     if not args.oracle and settings.offline_llm:
         print("No LLM API key is set. Refusing to score the FakeLLM as if it were a model.\n"
-              "Set GEMINI_API_KEY (or OPENAI_API_KEY), or run with --oracle for a "
+              "Set GEMINI_API_KEY, GROQ_API_KEY or OPENAI_API_KEY, or run with --oracle for a "
               "dataset/pipeline sanity check.")
         return 2
 
@@ -180,7 +180,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.oracle:
         sql_by_q = {q["question"]: q.get("gold_sql") or q.get("oracle_sql") for q in questions}
         llm = OracleLLM({k: v for k, v in sql_by_q.items() if v})
-        settings = settings.model_copy(update={"openai_api_key": None, "gemini_api_key": None})
+        settings = settings.model_copy(
+            update={"openai_api_key": None, "gemini_api_key": None, "groq_api_key": None}
+        )
     components = build_components(settings, llm=llm)
     gold_executor = PostgresExecutor(settings.database_url, statement_timeout_ms=10000)
 

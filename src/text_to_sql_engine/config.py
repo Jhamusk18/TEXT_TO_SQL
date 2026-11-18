@@ -14,10 +14,12 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     database_url: str | None = None
-    llm_provider: Literal["auto", "gemini", "openai"] = "auto"
+    llm_provider: Literal["auto", "gemini", "groq", "openai"] = "auto"
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
     gemini_embedding_model: str = "gemini-embedding-001"
+    groq_api_key: str | None = None
+    groq_model: str = "llama-3.3-70b-versatile"
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"
@@ -35,25 +37,34 @@ class Settings(BaseSettings):
         return {name.strip() for name in self.sensitive_tables.split(",") if name.strip()}
 
     @property
-    def active_provider(self) -> Literal["gemini", "openai", "fake"]:
-        """Which LLM backend is used. ``auto`` prefers Gemini, then OpenAI, then the fake.
+    def active_provider(
+        self,
+    ) -> Literal["gemini", "groq", "openai", "fake"]:
+        """Which LLM backend is used. ``auto`` prefers Gemini, Groq, OpenAI, then the fake.
 
         An explicit ``LLM_PROVIDER`` without its API key falls back to the fake
         rather than silently using the other provider.
         """
         if self.llm_provider == "gemini":
             return "gemini" if self.gemini_api_key else "fake"
+        if self.llm_provider == "groq":
+            return "groq" if self.groq_api_key else "fake"
         if self.llm_provider == "openai":
             return "openai" if self.openai_api_key else "fake"
         if self.gemini_api_key:
             return "gemini"
+        if self.groq_api_key:
+            return "groq"
         return "openai" if self.openai_api_key else "fake"
 
     @property
     def llm_model_name(self) -> str | None:
-        return {"gemini": self.gemini_model, "openai": self.openai_model}.get(
-            self.active_provider
-        )
+        models = {
+            "gemini": self.gemini_model,
+            "groq": self.groq_model,
+            "openai": self.openai_model,
+        }
+        return models.get(self.active_provider)
 
     @property
     def offline_llm(self) -> bool:

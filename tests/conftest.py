@@ -16,7 +16,8 @@ from text_to_sql_engine.schema.fixtures import DEMO_SCHEMA
 
 def pytest_configure(config: pytest.Config) -> None:
     """Runs before test modules are imported (``api`` builds an app at import time)."""
-    for name in ("GEMINI_API_KEY", "OPENAI_API_KEY", "LLM_PROVIDER", "DATABASE_URL"):
+    names = ("GEMINI_API_KEY", "GROQ_API_KEY", "OPENAI_API_KEY", "LLM_PROVIDER", "DATABASE_URL")
+    for name in names:
         os.environ.pop(name, None)
 
 

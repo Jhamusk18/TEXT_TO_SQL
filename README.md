@@ -195,6 +195,8 @@ Copy `.env.example` to `.env` and adjust. Every variable is optional — with no
 | `GEMINI_API_KEY` | *(unset)* | Enables the Gemini provider and embedder (free tier available) |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Chat model for generation, correction, summaries |
 | `GEMINI_EMBEDDING_MODEL` | `gemini-embedding-001` | Embeddings for schema-card and few-shot retrieval |
+| `GROQ_API_KEY` | *(unset)* | Enables the Groq provider (`LLM_PROVIDER=groq`); retrieval uses the local lexical embedder because Groq has no embeddings API |
+| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Chat model for generation, correction, summaries |
 | `OPENAI_API_KEY` | *(unset)* | Enables the OpenAI provider and embedder |
 | `OPENAI_MODEL` | `gpt-4o-mini` | Chat model for generation, correction, summaries |
 | `OPENAI_EMBEDDING_MODEL` | `text-embedding-3-small` | Embeddings for schema-card and few-shot retrieval |
