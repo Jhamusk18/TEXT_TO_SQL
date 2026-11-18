@@ -37,6 +37,9 @@ def test_offline_question_produces_validated_sql_and_summary(tmp_path: Path) -> 
     assert "orders.status" in result.sql  # columns were fully qualified
     assert result.summary == "The query returned 1 row."
     assert result.row_count == 1
+    assert set(result.retrieved_tables) == {
+        "customers", "products", "orders", "order_items", "refunds"
+    }
     assert result.corrections == []
     # EXPLAIN preflight ran before execution, on the same validated SQL.
     assert executor.explained == executor.executed
