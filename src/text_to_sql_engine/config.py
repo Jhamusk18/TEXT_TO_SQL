@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     gemini_api_key: str | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
     gemini_embedding_model: str = "gemini-embedding-001"
+    llm_fallback: Literal["auto", "none"] = "auto"
     groq_api_key: str | None = None
     groq_model: str = "llama-3.3-70b-versatile"
     openai_api_key: str | None = None

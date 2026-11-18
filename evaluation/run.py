@@ -237,6 +237,11 @@ def main(argv: list[str] | None = None) -> int:
               f"{q['question'][:62]}")
 
     after = _table_counts(settings.database_url)
+    fallback_llm = components.pipeline.llm
+    llm_fallback_calls = getattr(fallback_llm, "fallback_calls", 0)
+    if llm_fallback_calls:
+        print(f"\n!! {llm_fallback_calls} LLM calls were served by the FALLBACK model "
+              f"({fallback_llm.fallback_name}); these are mixed-provider results.")
 
     ans = [r for r in rows if r.category == "answerable"]
     unsafe = [r for r in rows if r.category == "unsafe"]
@@ -289,6 +294,7 @@ def main(argv: list[str] | None = None) -> int:
         "sample_rows": settings.sample_rows_per_table,
         "questions": len(questions),
         "incomplete": incomplete,
+        "llm_fallback_calls": llm_fallback_calls,
         "date": datetime.now(UTC).isoformat(timespec="seconds"),
     }
     payload = {

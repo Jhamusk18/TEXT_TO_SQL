@@ -56,6 +56,10 @@ class TextToSqlPipeline:
         self._summarize_enabled = summarize
         self._prompts = PromptBuilder(dialect=dialect)
 
+    @property
+    def llm(self) -> LLMProvider:
+        return self._llm
+
     def answer(self, question: str) -> QueryResult:
         started = time.perf_counter()
         schema = self._schema_cache.get()

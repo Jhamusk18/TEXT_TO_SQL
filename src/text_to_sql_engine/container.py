@@ -14,6 +14,7 @@ from text_to_sql_engine.demo_data import DEMO_SQL_TEMPLATES, FAKE_LLM_NO_TEMPLAT
 from text_to_sql_engine.embeddings.base import Embedder
 from text_to_sql_engine.embeddings.cached import CachedEmbedder
 from text_to_sql_engine.embeddings.fake import FakeEmbedder
+from text_to_sql_engine.embeddings.fallback import FallbackEmbedder
 from text_to_sql_engine.embeddings.gemini_embedder import GeminiEmbedder
 from text_to_sql_engine.embeddings.openai_embedder import OpenAIEmbedder
 from text_to_sql_engine.execution.executor import FakeExecutor, PostgresExecutor, QueryExecutor
@@ -22,6 +23,7 @@ from text_to_sql_engine.fewshot.store import FewShotStore
 from text_to_sql_engine.history import HistoryStore, SqliteHistoryStore
 from text_to_sql_engine.llm.base import LLMProvider
 from text_to_sql_engine.llm.fake import FakeLLM
+from text_to_sql_engine.llm.fallback import FallbackLLM
 from text_to_sql_engine.llm.gemini_provider import GeminiProvider
 from text_to_sql_engine.llm.groq_provider import GroqProvider
 from text_to_sql_engine.llm.openai_provider import OpenAIProvider
@@ -65,9 +67,22 @@ def build_components(
         embedder = FakeEmbedder()
     elif llm_mode == "gemini":
         key = settings.gemini_api_key or ""
+        gemini_embedder = CachedEmbedder(
+            GeminiEmbedder(key, model=settings.gemini_embedding_model)
+        )
+        embedder = gemini_embedder
         if llm is None:
             llm = GeminiProvider(key, model=settings.gemini_model)
-        embedder = CachedEmbedder(GeminiEmbedder(key, model=settings.gemini_embedding_model))
+            if settings.llm_fallback == "auto" and settings.groq_api_key:
+                llm = FallbackLLM(
+                    llm,
+                    GroqProvider(settings.groq_api_key, model=settings.groq_model),
+                    primary_name=f"gemini:{settings.gemini_model}",
+                    fallback_name=f"groq:{settings.groq_model}",
+                )
+                embedder = FallbackEmbedder(
+                    gemini_embedder, CachedEmbedder(FakeEmbedder()), "gemini", "lexical"
+                )
     elif llm_mode == "groq":
         if llm is None:
             llm = GroqProvider(settings.groq_api_key or "", model=settings.groq_model)
