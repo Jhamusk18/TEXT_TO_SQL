@@ -9,6 +9,7 @@ from text_to_sql_engine.embeddings.base import Embedder
 from text_to_sql_engine.execution.executor import ExecutionResult, QueryExecutor
 from text_to_sql_engine.fewshot.store import FewShotStore
 from text_to_sql_engine.guardrails.base import GuardrailContext, GuardrailPipeline
+from text_to_sql_engine.guardrails.intent import detect_write_intent
 from text_to_sql_engine.guardrails.rules import default_rules
 from text_to_sql_engine.history import HistoryStore
 from text_to_sql_engine.llm.base import LLMProvider
@@ -62,6 +63,21 @@ class TextToSqlPipeline:
 
     def answer(self, question: str) -> QueryResult:
         started = time.perf_counter()
+        phrase = detect_write_intent(question)
+        if phrase is not None:
+            message = (
+                f"intent-gate: the request asks to modify data ('{phrase}'); "
+                "this service is read-only"
+            )
+            latency_ms = round((time.perf_counter() - started) * 1000, 2)
+            self._history.add(question, None, QueryStatus.REJECTED, latency_ms)
+            return QueryResult(
+                question=question,
+                sql=None,
+                status=QueryStatus.REJECTED,
+                latency_ms=latency_ms,
+                error=message,
+            )
         schema = self._schema_cache.get()
         if self._prompt_mode == "baseline":
             # Ablation baseline: bare table names, no retrieval, no exemplars.

@@ -144,7 +144,7 @@ def test_gemini_sql_still_goes_through_guardrails(
     components = build_components(
         settings, llm=GeminiProvider("unused", client=_client(models)), executor=executor
     )
-    result = components.pipeline.answer("Delete all orders")
+    result = components.pipeline.answer("Show all orders")
     assert result.status is QueryStatus.REJECTED
     assert result.error is not None and "select-only" in result.error
     assert executor.executed == []
