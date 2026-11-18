@@ -76,7 +76,11 @@ def build_components(
             if settings.llm_fallback == "auto" and settings.groq_api_key:
                 llm = FallbackLLM(
                     llm,
-                    GroqProvider(settings.groq_api_key, model=settings.groq_model),
+                    GroqProvider(
+                        settings.groq_api_key,
+                        model=settings.groq_model,
+                        reasoning_effort=settings.groq_reasoning_effort,
+                    ),
                     primary_name=f"gemini:{settings.gemini_model}",
                     fallback_name=f"groq:{settings.groq_model}",
                 )
@@ -85,7 +89,11 @@ def build_components(
                 )
     elif llm_mode == "groq":
         if llm is None:
-            llm = GroqProvider(settings.groq_api_key or "", model=settings.groq_model)
+            llm = GroqProvider(
+                settings.groq_api_key or "",
+                model=settings.groq_model,
+                reasoning_effort=settings.groq_reasoning_effort,
+            )
         embedder = CachedEmbedder(FakeEmbedder())  # Groq has no embeddings API
     else:
         key = settings.openai_api_key or ""

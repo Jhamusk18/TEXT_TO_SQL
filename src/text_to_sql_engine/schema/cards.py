@@ -52,6 +52,8 @@ def build_card(table: TableInfo) -> SchemaCard:
             line += f" -> {fk.references_table}.{fk.references_column}"
         if column.comment:
             line += f" -- {column.comment}"
+        if column.sample_values:
+            line += " (values: " + ", ".join(column.sample_values) + ")"
         lines.append(line)
     for row in table.sample_rows:
         lines.append("  sample: " + ", ".join(f"{name}={value}" for name, value in row.items()))

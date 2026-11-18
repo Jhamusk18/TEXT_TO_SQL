@@ -19,13 +19,22 @@ real model the metrics are whatever the model achieves.
 
 Metric definitions (answerable questions unless noted):
   valid SQL rate         first attempt passed guardrails and the EXPLAIN preflight
-  execution success      final status == ok
+  execution success      ("query success") final status == ok: the SQL passed every
+                         guardrail and executed on PostgreSQL without error. It says
+                         nothing about whether the rows are right; see accuracy.
+  ... (1st try)          same, using only the first attempt. In a run with corrections
+                         on, the first attempt is exactly what a corrections-off run
+                         produces (same prompt, same model, temperature 0), so one run
+                         gives a paired correction OFF vs ON comparison per question.
   execution accuracy     final rows match the gold SQL rows (order-insensitive,
                          column names ignored)
   correction success     of questions whose first attempt failed, share that ended ok
   unsafe rejection       unsafe requests whose final status != ok (nothing executed)
   hallucination rate     first-attempt SQL referenced a table/column absent from the
                          schema (static sqlglot check, evaluation/hallucination.py)
+  declined               status == unanswerable (model replied CANNOT_ANSWER); for
+                         answerable questions this is a false refusal, for nonexistent
+                         and ambiguous ones it is the desired outcome
   data unchanged         row counts of every table identical before and after the run
 """
 
@@ -34,6 +43,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 import tempfile
 from collections import Counter
@@ -91,6 +101,8 @@ class Row:
     hallucinations: list[str] = field(default_factory=list)
     note: str = ""
     corrections: list[str] = field(default_factory=list)
+    first_attempt_ok: bool = False
+    first_attempt_accurate: bool | None = None
 
 
 def _norm(value: Any) -> Any:
@@ -157,6 +169,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--sample-rows", type=int, default=None)
     parser.add_argument("--max-corrections", type=int, default=None)
     parser.add_argument("--out", type=Path, default=None)
+    parser.add_argument(
+        "--resume", action="store_true",
+        help="continue an incomplete --out file (same provider/model/config), skipping "
+             "questions already scored; for runs cut short by a free-tier quota",
+    )
     args = parser.parse_args(argv)
 
     settings = Settings()
@@ -205,9 +222,30 @@ def main(argv: list[str] | None = None) -> int:
     schema = components.schema_cache.get()
     before = _table_counts(settings.database_url)
 
+    out = args.out or ARTIFACTS / ("eval_oracle.json" if args.oracle else "eval_live.json")
     rows: list[Row] = []
+    prior_usage = {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0}
+    if args.resume and out.exists():
+        previous = json.loads(out.read_text())
+        pc = previous["config"]
+        same = {
+            "provider": settings.active_provider, "model": settings.llm_model_name,
+            "prompt_mode": settings.prompt_mode,
+            "max_corrections": settings.max_correction_rounds,
+            "sample_rows": settings.sample_rows_per_table,
+        }
+        mismatched = {k: (pc.get(k), v) for k, v in same.items() if pc.get(k) != v}
+        if mismatched:
+            print(f"Cannot resume {out}: config differs {mismatched}")
+            return 2
+        rows = [Row(**r) for r in previous["rows"]]
+        prior_usage = previous.get("usage", prior_usage)
+        print(f"Resuming {out}: {len(rows)} questions already scored")
+    done = {r.id for r in rows}
     incomplete = False
     for q in questions:
+        if q["id"] in done:
+            continue
         if args.oracle and q["category"] == "ambiguous":
             rows.append(Row(q["id"], q["category"], q["question"], "skipped", 0, False, None,
                             None, None, None, note="no reference SQL in oracle mode"))
@@ -232,6 +270,7 @@ def main(argv: list[str] | None = None) -> int:
         first_sql = _first_attempt_sql(result)
         found = find_hallucinations(first_sql, schema)
         needed_correction = bool(result.corrections)
+        first_ok = ok and not needed_correction
         rows.append(Row(
             q["id"], q["category"], q["question"], result.status.value, result.attempts,
             first_valid, (ok if needed_correction else None), accurate, result.sql, result.error,
@@ -239,6 +278,10 @@ def main(argv: list[str] | None = None) -> int:
             first_attempt_sql=first_sql,
             hallucinations=[f"table:{t}" for t in found.tables]
             + [f"column:{c}" for c in found.columns],
+            first_attempt_ok=first_ok,
+            first_attempt_accurate=(
+                bool(accurate) and first_ok if q["category"] == "answerable" else None
+            ),
         ))
         mark = "ok " if ok else result.status.value[:3]
         print(f"  #{q['id']:>2} [{q['category'][:5]}] {mark} a={result.attempts} "
@@ -251,8 +294,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n!! {llm_fallback_calls} LLM calls were served by the FALLBACK model "
               f"({fallback_llm.fallback_name}); these are mixed-provider results.")
 
+    rows.sort(key=lambda r: r.id)
     ans = [r for r in rows if r.category == "answerable"]
     unsafe = [r for r in rows if r.category == "unsafe"]
+    nonexistent = [r for r in rows if r.category == "nonexistent"]
+    ambiguous = [r for r in rows if r.category == "ambiguous"]
     corrected = [r for r in rows if r.corrected_ok is not None and r.category == "answerable"]
     print("\n" + "=" * 70)
     print(f"RESULTS  —  {mode}")
@@ -261,10 +307,17 @@ def main(argv: list[str] | None = None) -> int:
     lines = [
         ("answerable questions", str(len(ans))),
         ("valid SQL rate (1st try)", _pct(sum(r.first_attempt_valid for r in ans), len(ans))),
-        ("execution success rate", _pct(sum(r.status == "ok" for r in ans), len(ans))),
+        ("exec success (1st try)", _pct(sum(r.first_attempt_ok for r in ans), len(ans))
+         + "  = correction OFF"),
+        ("execution success rate", _pct(sum(r.status == "ok" for r in ans), len(ans))
+         + "  = final"),
         ("hallucination rate (1st try)",
          _pct(sum(bool(r.hallucinations) for r in ans), len(ans))),
+        ("accuracy vs gold (1st try)",
+         _pct(sum(bool(r.first_attempt_accurate) for r in ans), len(ans))),
         ("execution accuracy vs gold", _pct(sum(bool(r.accurate) for r in ans), len(ans))),
+        ("answerable declined", _pct(sum(r.status == "unanswerable" for r in ans), len(ans))
+         + "  (false refusals)"),
         ("correction success rate",
          _pct(sum(bool(r.corrected_ok) for r in corrected), len(corrected))
          + "  (questions whose 1st attempt failed)"),
@@ -280,20 +333,37 @@ def main(argv: list[str] | None = None) -> int:
         print("\nORACLE MODE validates the dataset and pipeline plumbing only. "
               "These numbers are NOT a measure of LLM quality.")
 
-    out = args.out or ARTIFACTS / ("eval_oracle.json" if args.oracle else "eval_live.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     n = len(ans)
     metrics = {
         "answerable": n,
         "valid_sql_first_try": sum(r.first_attempt_valid for r in ans),
         "execution_success": sum(r.status == "ok" for r in ans),
+        "execution_success_first_try": sum(r.first_attempt_ok for r in ans),
         "execution_accuracy": sum(bool(r.accurate) for r in ans),
+        "execution_accuracy_first_try": sum(bool(r.first_attempt_accurate) for r in ans),
+        "answerable_declined": sum(r.status == "unanswerable" for r in ans),
         "hallucinated_first_try": sum(bool(r.hallucinations) for r in ans),
         "needed_correction": len(corrected),
         "corrected_ok": sum(bool(r.corrected_ok) for r in corrected),
         "unsafe_rejected": rejected,
         "unsafe_total": len(unsafe),
+        "nonexistent_not_executed": sum(r.status != "ok" for r in nonexistent),
+        "nonexistent_total": len(nonexistent),
+        "ambiguous_not_executed": sum(r.status != "ok" for r in ambiguous),
+        "ambiguous_total": len(ambiguous),
     }
+    provider_llm = getattr(fallback_llm, "primary", fallback_llm)
+    usage = {
+        key: prior_usage.get(key, 0) + int(getattr(provider_llm, key, 0) or 0)
+        for key in ("calls", "prompt_tokens", "completion_tokens")
+    }
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=False
+        ).stdout.strip() or None
+    except OSError:
+        commit = None
     config = {
         "provider": settings.active_provider,
         "model": settings.llm_model_name,
@@ -303,12 +373,20 @@ def main(argv: list[str] | None = None) -> int:
         "questions": len(questions),
         "incomplete": incomplete,
         "llm_fallback_calls": llm_fallback_calls,
+        "reasoning_effort": (
+            settings.groq_reasoning_effort if settings.active_provider == "groq" else None
+        ),
+        "retrieval_embedder": {"gemini": "gemini", "openai": "openai"}.get(
+            settings.active_provider, "lexical"
+        ),
+        "git_commit": commit,
         "date": datetime.now(UTC).isoformat(timespec="seconds"),
     }
     payload = {
         "mode": mode,
         "config": config,
         "metrics": metrics,
+        "usage": usage,
         "rows": [asdict(r) for r in rows],
     }
     out.write_text(json.dumps(payload, indent=2, default=str))

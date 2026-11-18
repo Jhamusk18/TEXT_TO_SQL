@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     llm_fallback: Literal["auto", "none"] = "auto"
     groq_api_key: str | None = None
     groq_model: str = "qwen/qwen3.8-27b"
+    # Only for reasoning models (e.g. openai/gpt-oss-20b): low | medium | high.
+    groq_reasoning_effort: str | None = None
     openai_api_key: str | None = None
     openai_model: str = "gpt-4o-mini"
     openai_embedding_model: str = "text-embedding-3-small"

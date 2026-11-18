@@ -26,6 +26,8 @@ class ColumnInfo(StrictModel):
     nullable: bool = True
     primary_key: bool = False
     comment: str | None = None
+    # Distinct values of a low-cardinality text column (non-sensitive tables only).
+    sample_values: list[str] = Field(default_factory=list)
 
 
 class ForeignKey(StrictModel):
@@ -98,6 +100,7 @@ class QueryStatus(StrEnum):
     OK = "ok"
     REJECTED = "rejected"
     ERROR = "error"
+    UNANSWERABLE = "unanswerable"  # the model declined: schema cannot answer / too vague
 
 
 class CorrectionRound(StrictModel):

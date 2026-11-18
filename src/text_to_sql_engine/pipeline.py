@@ -102,7 +102,13 @@ class TextToSqlPipeline:
             ),
         )
         loop = CorrectionLoop(
-            self._llm, guardrails, self._executor, self._prompts, self._max_corrections
+            self._llm,
+            guardrails,
+            self._executor,
+            self._prompts,
+            self._max_corrections,
+            schema=schema,
+            schema_text="\n".join(card.text for card in cards),
         )
         outcome = loop.run(question, prompt)
         latency_ms = round((time.perf_counter() - started) * 1000, 2)

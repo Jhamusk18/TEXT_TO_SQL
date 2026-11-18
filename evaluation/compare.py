@@ -94,26 +94,43 @@ def main(argv: list[str] | None = None) -> int:
 
     by_key = {_key(run): run["metrics"] for _, run in runs}
     print("\nClaims supported by these files:")
-    aware = by_key.get(("schema_aware", 0, 3))
-    for weaker in WEAKER_PROMPTS:
-        base = by_key.get((weaker, 0, 3))
-        if aware is None or base is None:
+    for corr in sorted({k for _p, k, _s in by_key}):
+        aware = by_key.get(("schema_aware", corr, 3))
+        if aware is None:
             continue
-        hb, ha = base["hallucinated_first_try"], aware["hallucinated_first_try"]
-        if hb:
+        for weaker in WEAKER_PROMPTS:
+            base = by_key.get((weaker, corr, 3))
+            if base is None:
+                continue
+            hb, ha = base["hallucinated_first_try"], aware["hallucinated_first_try"]
+            if hb:
+                print(
+                    f"- hallucinated first-try SQL, {weaker} -> schema_aware (max {corr} "
+                    "retries): "
+                    f"{_frac(hb, base['answerable'])} -> {_frac(ha, aware['answerable'])}; "
+                    f"relative reduction {(hb - ha) / hb:.1%}"
+                )
+        no_samples = by_key.get(("schema_aware", corr, 0))
+        if no_samples is not None:
             print(
-                f"- hallucinated first-try SQL, {weaker} -> schema_aware (corrections off): "
-                f"{_frac(hb, base['answerable'])} -> {_frac(ha, aware['answerable'])}; "
-                f"relative reduction {(hb - ha) / hb:.1%}"
+                "- sample rows (schema_aware), 0 -> 3 rows: hallucinated "
+                f"{_frac(no_samples['hallucinated_first_try'], no_samples['answerable'])} -> "
+                f"{_frac(aware['hallucinated_first_try'], aware['answerable'])}; accuracy "
+                f"{_frac(no_samples['execution_accuracy'], no_samples['answerable'])} -> "
+                f"{_frac(aware['execution_accuracy'], aware['answerable'])}"
             )
-    no_samples = by_key.get(("schema_aware", 0, 0))
-    if aware is not None and no_samples is not None:
+    for (prompt, corr, samples), m in sorted(by_key.items()):
+        if corr == 0 or "execution_success_first_try" not in m:
+            continue
+        n = m["answerable"]
         print(
-            "- sample rows (schema_aware, corrections off), 0 -> 3 rows: hallucinated "
-            f"{_frac(no_samples['hallucinated_first_try'], no_samples['answerable'])} -> "
-            f"{_frac(aware['hallucinated_first_try'], aware['answerable'])}; accuracy "
-            f"{_frac(no_samples['execution_accuracy'], no_samples['answerable'])} -> "
-            f"{_frac(aware['execution_accuracy'], aware['answerable'])}"
+            f"- self-correction, paired within one run ({prompt}, sample_rows={samples}, "
+            f"max {corr} retries): query success "
+            f"{_frac(m['execution_success_first_try'], n)} OFF -> "
+            f"{_frac(m['execution_success'], n)} ON; accuracy "
+            f"{_frac(m['execution_accuracy_first_try'], n)} -> "
+            f"{_frac(m['execution_accuracy'], n)}; "
+            f"{m['corrected_ok']}/{m['needed_correction']} failed first attempts fixed"
         )
     for prompt in ("schema_aware", *WEAKER_PROMPTS):
         off = by_key.get((prompt, 0, 3))
@@ -123,13 +140,22 @@ def main(argv: list[str] | None = None) -> int:
         if off is None or on is None:
             continue
         print(
-            f"- self-correction on {prompt}: execution success "
+            f"- self-correction across two runs ({prompt}): execution success "
             f"{_frac(off['execution_success'], off['answerable'])} -> "
             f"{_frac(on['execution_success'], on['answerable'])}; accuracy "
             f"{_frac(off['execution_accuracy'], off['answerable'])} -> "
-            f"{_frac(on['execution_accuracy'], on['answerable'])}; "
-            f"{on['corrected_ok']}/{on['needed_correction']} failed first attempts fixed"
+            f"{_frac(on['execution_accuracy'], on['answerable'])}"
         )
+    for path, run in runs:
+        m = run["metrics"]
+        if "nonexistent_total" in m:
+            print(
+                f"- {path.name}: unsafe rejected {m['unsafe_rejected']}/{m['unsafe_total']}, "
+                f"nonexistent not executed {m['nonexistent_not_executed']}/"
+                f"{m['nonexistent_total']}, ambiguous not executed "
+                f"{m['ambiguous_not_executed']}/{m['ambiguous_total']}, answerable falsely "
+                f"declined {m['answerable_declined']}/{m['answerable']}"
+            )
     return 0
 
 

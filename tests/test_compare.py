@@ -39,7 +39,22 @@ def test_reduction_is_computed_from_counts(
     assert main([a, b, c]) == 0
     out = capsys.readouterr().out
     assert "40/50 (80.0%) -> 10/50 (20.0%); relative reduction 75.0%" in out
-    assert "self-correction on schema_aware: execution success 40/50 (80.0%) -> 45/50" in out
+    assert "across two runs (schema_aware): execution success 40/50 (80.0%) -> 45/50" in out
+
+
+def test_paired_correction_claim_from_one_run(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    a = _write(tmp_path, "b2.json", prompt="baseline", corr=2, halluc=40, ok=30)
+    b = _write(tmp_path, "a2.json", prompt="schema_aware", corr=2, halluc=10, ok=45)
+    for path, first in ((a, 20), (b, 35)):
+        data = json.loads(Path(path).read_text())
+        data["metrics"].update(execution_success_first_try=first, execution_accuracy_first_try=0)
+        Path(path).write_text(json.dumps(data))
+    assert main([a, b]) == 0
+    out = capsys.readouterr().out
+    assert "paired within one run (schema_aware" in out
+    assert "query success 35/50 (70.0%) OFF -> 45/50 (90.0%) ON" in out
 
 
 def test_refuses_different_models(tmp_path: Path) -> None:

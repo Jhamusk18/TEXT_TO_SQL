@@ -28,6 +28,15 @@ def test_card_includes_sample_rows() -> None:
     assert "sample: id=1, name=Mug" in build_card(table).text
 
 
+def test_card_lists_categorical_values() -> None:
+    columns = [
+        c.model_copy(update={"sample_values": ["books", "home"]}) if c.name == "category" else c
+        for c in DEMO_SCHEMA.tables[1].columns
+    ]
+    table = TableInfo(name="products", columns=columns)
+    assert "category text (values: books, home)" in build_card(table).text
+
+
 def test_card_without_sample_rows_has_no_sample_lines() -> None:
     assert "sample:" not in build_card(DEMO_SCHEMA.tables[1]).text
 
