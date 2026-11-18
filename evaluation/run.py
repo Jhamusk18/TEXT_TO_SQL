@@ -47,6 +47,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 from collections import Counter
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime
@@ -255,10 +256,20 @@ def main(argv: list[str] | None = None) -> int:
             rows.append(Row(q["id"], q["category"], q["question"], "skipped", 0, False, None,
                             None, None, None, note="no reference SQL in oracle mode"))
             continue
-        try:
-            result = components.pipeline.answer(q["question"])
-        except Exception as error:  # provider quota/outage: keep what was measured so far
-            print(f"  !! aborting at #{q['id']}: {type(error).__name__}: {str(error)[:120]}")
+        result = None
+        for wait in (0, 20, 40, 60, 60, 60):
+            time.sleep(wait)
+            try:
+                result = components.pipeline.answer(q["question"])
+                break
+            except Exception as error:  # provider quota/outage: keep what was measured so far
+                text = str(error)
+                if "per minute" in text and wait < 60:
+                    print(f"  .. per-minute limit at #{q['id']}, waiting")
+                    continue
+                print(f"  !! aborting at #{q['id']}: {type(error).__name__}: {text[:160]}")
+                break
+        if result is None:
             incomplete = True
             break
         ok = result.status is QueryStatus.OK
