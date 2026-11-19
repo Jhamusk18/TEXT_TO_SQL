@@ -45,7 +45,29 @@ def _load_streamlit_secrets() -> None:
 
 _load_streamlit_secrets()
 API_URL = os.environ.get("T2S_API_URL", "http://127.0.0.1:8000")
-EMBEDDED = os.environ.get("T2S_EMBEDDED", "").lower() in {"1", "true", "yes"}
+_EXPLICIT_API = "T2S_API_URL" in os.environ
+_FORCE_EMBEDDED = os.environ.get("T2S_EMBEDDED", "").lower() in {"1", "true", "yes"}
+
+
+def _backend_reachable() -> bool:
+    try:
+        return httpx.get(f"{API_URL}/healthz", timeout=1).status_code == 200
+    except httpx.HTTPError:
+        return False
+
+
+@st.cache_resource
+def use_embedded() -> bool:
+    """Embedded when forced, or when no backend address was given and none is running.
+
+    Streamlit Cloud has no FastAPI server, so the app must run the pipeline itself there
+    even if the T2S_EMBEDDED secret was not applied.
+    """
+    if _FORCE_EMBEDDED:
+        return True
+    if _EXPLICIT_API:
+        return False
+    return not _backend_reachable()
 
 FAKE_MODE_QUESTIONS = [
     "Which 5 products have generated the most revenue?",
@@ -91,7 +113,7 @@ def _embedded_health() -> dict[str, str]:
 
 
 def fetch_health() -> dict[str, str] | None:
-    if EMBEDDED:
+    if use_embedded():
         return _embedded_health()
     try:
         response = httpx.get(f"{API_URL}/healthz", timeout=3)
@@ -102,8 +124,17 @@ def fetch_health() -> dict[str, str] | None:
 
 
 def run_query(question: str) -> dict[str, Any]:
-    if EMBEDDED:
-        return dict(_components().pipeline.answer(question).model_dump(mode="json"))
+    if use_embedded():
+        from text_to_sql_engine.models import QueryResult, QueryStatus
+
+        try:
+            result = _components().pipeline.answer(question)
+        except Exception as error:  # provider quota or outage: show it, do not crash the page
+            message = f"The AI provider did not answer ({type(error).__name__}). "
+            message += "Free-tier limits reset within minutes; try again shortly."
+            result = QueryResult(question=question, sql=None, status=QueryStatus.ERROR,
+                                 error=message)
+        return dict(result.model_dump(mode="json"))
     response = httpx.post(f"{API_URL}/query", json={"question": question}, timeout=120)
     response.raise_for_status()
     return dict(response.json())
