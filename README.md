@@ -460,6 +460,7 @@ The live-database path (introspection SQL, read-only executor) is exercised manu
 - Column-level sensitivity: mask or drop flagged columns instead of rejecting the whole star.
 - Gate execution on `EXPLAIN` cost output, not just success — refuse plans above a configurable cost ceiling.
 - Persist corrected (question, SQL) pairs as new few-shot exemplars after human approval.
+- Analyst-reviewed learning loop (planned, not built). Stage 1: a review queue fed by answers that needed correction, with an analyst page to approve, edit or reject each item. Stage 2: approved items become retrieved examples, and the approval rate is logged per question type. Stage 3: held-out evaluation with the store on and off, to show whether it helps without leaking test questions. Stage 4: auto-approval only for question types with a high, stable approval rate, with analyst spot checks. Gains are expected to level off once common question types are covered.
 - Function denylist (e.g. `pg_sleep`, `pg_read_file`) as an additional guardrail rule.
 - Multi-dialect support via sqlglot transpilation (DuckDB and SQLite backends for local analytics).
 - Embedding cache + pgvector-backed retrieval for schemas with hundreds of tables.
